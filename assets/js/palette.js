@@ -95,9 +95,9 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
     const cmd = items[i];
     if (!cmd) return;
     sound.tick(1.2);
-    close();
-    // let the dialog finish closing before navigating / scrolling
-    requestAnimationFrame(() => cmd.run());
+    // run once the dialog has closed (and handed focus back), so the command's
+    // own focus/scroll wins
+    close(() => requestAnimationFrame(() => cmd.run()));
   }
 
   // Keyboard-invoked = frequent = instant. Pointer-invoked gets the soft entrance.
@@ -112,10 +112,17 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
     input.focus();
     sound.tick(0.9);
   }
-  function close() {
+  // Pointer-opened palettes fade out (150ms); keyboard-opened ones vanish instantly.
+  let closing = 0;
+  function close(then) {
     if (!dialog.open) return;
+    const instant = dialog.classList.contains('no-anim') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (closing) return;
+    const finish = () => { closing = 0; dialog.classList.remove('is-open', 'is-closing'); dialog.close(); then?.(); };
+    if (instant) return finish();
+    dialog.classList.add('is-closing');
     dialog.classList.remove('is-open');
-    dialog.close();
+    closing = setTimeout(finish, 150);
   }
 
   input.addEventListener('input', () => { active = 0; render(); });
@@ -129,7 +136,9 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
   });
   // click on the backdrop closes
   dialog.addEventListener('click', (e) => { if (e.target === dialog) close(); });
-  dialog.addEventListener('close', () => dialog.classList.remove('is-open'));
+  dialog.addEventListener('close', () => { clearTimeout(closing); closing = 0; dialog.classList.remove('is-open', 'is-closing'); });
+  // Escape: animate out like every other close
+  dialog.addEventListener('cancel', (e) => { e.preventDefault(); close(); });
 
   document.addEventListener('keydown', (e) => {
     const typing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;

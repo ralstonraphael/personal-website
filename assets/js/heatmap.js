@@ -102,7 +102,7 @@ export function initHeatmap(root) {
       const section = root.closest('section');
       const title = section?.querySelector('.section-title');
       const aside = section?.querySelector('.section-aside');
-      if (title) title.textContent = 'Your visit';
+      if (title) (title.querySelector('.line > span') || title).textContent = 'Your visit';
       if (aside) aside.textContent = 'live · stays in your browser';
     }
     if (ghFailed) setMode('you', false);

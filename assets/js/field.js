@@ -5,6 +5,7 @@
 // along a thermal ramp (ice → blue → violet → red → orange → yellow), so hot
 // regions read as a pixelated gradient. Colours come from CSS custom props.
 
+import { scroll } from './smooth.js';
 import { prefersReducedMotion, motion, readColor, mix } from './util.js';
 
 const LEVELS = 40; // heat buckets: one fillStyle per bucket per frame
@@ -46,6 +47,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   let statsAt = 0, frame = 0, lastInput = performance.now();
   let rect = null; // cached canvas rect; invalidated on scroll/resize
   let floor = 0.12; // how much heat survives behind text (0..1)
+  let chill = 0; // 0 = full ambient heat, 1 = mostly cooled (scrolled away)
 
   const still = () => reduce || !motion.on;
   const visible = () => inView && pageVisible;
@@ -273,10 +275,11 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   }
 
   function draw() {
+    const ambK = 1 - 0.75 * chill;
     ctx.clearRect(0, 0, W, H);
     counts.fill(0);
     for (let i = 0; i < N; i++) {
-      const h = Math.min(1, (heat[i] + amb[i]) * damp[i]);
+      const h = Math.min(1, (heat[i] + amb[i] * ambK) * damp[i]);
       const b = Math.min(LEVELS - 1, (h * (LEVELS - 1) + 0.5) | 0);
       bucket[i] = b;
       counts[b]++;
@@ -304,6 +307,9 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
     if (!visible()) return;
     const { energy, moving } = step(now);
     const interacting = pointer.speed > 0.05 || ripples.length > 0 || energy > 0.01 || moving > 0;
+    // mid-fling the field is a blur anyway: skip ambient frames so the glass above
+    // it doesn't have to re-blur while the page flies past
+    if (!interacting && scroll.smooth && Math.abs(scroll.v) > 12) { raf = requestAnimationFrame(loop); return; }
     // Plumes drift slowly, so ambient-only frames run at 30fps, dropping to
     // ~15fps after 12s without input. Interaction always gets full rate.
     const idleFor = now - lastInput;
@@ -340,5 +346,11 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   return {
     repaint() { palette(); measureText(); draw(); wake(); },
     remeasure() { measureText(); draw(); },
+    // scroll-linked: the plumes cool toward blue as the section leaves view
+    setCool(k) {
+      if (Math.abs(k - chill) < 0.005) return;
+      chill = k;
+      if (!raf && visible()) draw();
+    },
   };
 }
