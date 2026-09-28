@@ -16,10 +16,10 @@ const PRESETS = {
   hero: [
     { x: 0.83, y: 0.42, r: 0.095, a: 0.98, fx: 0.11, fy: 0.07, ax: 0.035, ay: 0.03 },
     { x: 0.70, y: 0.86, r: 0.07, a: 0.8, fx: 0.08, fy: 0.13, ax: 0.05, ay: 0.02 },
-    { x: 0.99, y: 0.10, r: 0.05, a: 0.55, fx: 0.14, fy: 0.09, ax: 0.02, ay: 0.02 },
+    { x: 1.0, y: 0.17, r: 0.05, a: 0.55, fx: 0.14, fy: 0.09, ax: 0.015, ay: 0.02 },
   ],
   heroNarrow: [
-    { x: 0.92, y: 0.07, r: 0.16, a: 0.9, fx: 0.10, fy: 0.08, ax: 0.05, ay: 0.015 },
+    { x: 0.96, y: 0.19, r: 0.16, a: 0.9, fx: 0.10, fy: 0.08, ax: 0.04, ay: 0.015 },
     { x: 0.08, y: 0.95, r: 0.14, a: 0.6, fx: 0.08, fy: 0.12, ax: 0.05, ay: 0.01 },
   ],
   calm: [
@@ -28,12 +28,12 @@ const PRESETS = {
   ],
 };
 
-export function initField(canvas, { host = canvas.parentElement, preset = 'hero', onStats } = {}) {
+export function initField(canvas, { host = canvas.parentElement, preset = 'hero', avoid = '', onStats } = {}) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const reduce = prefersReducedMotion();
 
   let W = 0, H = 0, dpr = 1, gap = 22, cols = 0, rows = 0, N = 0, maxS = 20;
-  let heat, amb, ox, oy, vx, vy, bucket, order;
+  let heat, amb, damp, ox, oy, vx, vy, bucket, order;
   const counts = new Int32Array(LEVELS);
   const starts = new Int32Array(LEVELS);
   const fill = new Int32Array(LEVELS);
@@ -45,6 +45,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   let raf = 0, inView = false, pageVisible = !document.hidden, last = 0, t0 = performance.now();
   let statsAt = 0, frame = 0, lastInput = performance.now();
   let rect = null; // cached canvas rect; invalidated on scroll/resize
+  let floor = 0.12; // how much heat survives behind text (0..1)
 
   const still = () => reduce || !motion.on;
   const visible = () => inView && pageVisible;
@@ -53,6 +54,8 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
     const cs = getComputedStyle(canvas);
     const dot = readColor(cs.getPropertyValue('--field-dot').trim() || '#1a1a1a');
     const restAlpha = parseFloat(cs.getPropertyValue('--field-dot-alpha')) || 0.17;
+    const maxAlpha = parseFloat(cs.getPropertyValue('--field-max-alpha')) || 1;
+    floor = parseFloat(cs.getPropertyValue('--field-text-floor')) || 0.12;
     const ramp = STOPS.map((v) => readColor(cs.getPropertyValue(v).trim() || '#ff4f1a'));
     styles = []; sizes = [];
     for (let i = 0; i < LEVELS; i++) {
@@ -65,7 +68,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
         const p = ((h - 0.1) / 0.9) * (ramp.length - 1);
         const k = Math.min(ramp.length - 2, Math.floor(p));
         c = mix(ramp[k], ramp[k + 1], p - k);
-        alpha = Math.min(1, 0.5 + (h - 0.1) * 1.2);
+        alpha = Math.min(maxAlpha, 0.5 + (h - 0.1) * 1.2);
       }
       styles.push(`rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${alpha.toFixed(3)})`);
       // dot at rest → full pixel when hot (smoothstep 0.12..0.8)
@@ -90,14 +93,48 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
     cols = Math.ceil(W / gap) + 1;
     rows = Math.ceil(H / gap) + 1;
     N = cols * rows;
-    heat = new Float32Array(N); amb = new Float32Array(N);
+    heat = new Float32Array(N); amb = new Float32Array(N); damp = new Float32Array(N).fill(1);
     ox = new Float32Array(N); oy = new Float32Array(N);
     vx = new Float32Array(N); vy = new Float32Array(N);
     bucket = new Uint8Array(N);
     order = new Int32Array(N);
     palette();
+    measureText();
     ambient(performance.now());
     draw();
+  }
+
+  // Keep text legible: find every line of text we must not heat, and make the
+  // cells behind it "cold". Heat flows around the words instead of under them.
+  function measureText() {
+    if (!damp) return;
+    damp.fill(1);
+    if (!avoid) return;
+    const cr = canvas.getBoundingClientRect();
+    const boxes = [];
+    host.querySelectorAll(avoid).forEach((el) => {
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      for (const r of range.getClientRects()) {
+        if (r.width > 1 && r.height > 1) boxes.push([r.left - cr.left, r.top - cr.top, r.right - cr.left, r.bottom - cr.top]);
+      }
+    });
+    const pad = 6, feather = 30, reach = pad + feather;
+    for (const [x0, y0, x1, y1] of boxes) {
+      const c0 = Math.max(0, Math.floor((x0 - reach) / gap)), c1 = Math.min(cols - 1, Math.ceil((x1 + reach) / gap));
+      const r0 = Math.max(0, Math.floor((y0 - reach) / gap)), r1 = Math.min(rows - 1, Math.ceil((y1 + reach) / gap));
+      for (let r = r0; r <= r1; r++) {
+        for (let c = c0; c <= c1; c++) {
+          const x = c * gap, y = r * gap;
+          const dx = Math.max(x0 - x, 0, x - x1), dy = Math.max(y0 - y, 0, y - y1);
+          const d = Math.max(0, Math.hypot(dx, dy) - pad) / feather;
+          const t = Math.min(1, d);
+          const f = floor + (1 - floor) * t * t * (3 - 2 * t);
+          const i = r * cols + c;
+          if (f < damp[i]) damp[i] = f;
+        }
+      }
+    }
   }
 
   function local(e) {
@@ -146,7 +183,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   // Ambient plumes: sum of drifting gaussians, written into amb[].
   function ambient(now) {
     const t = still() ? 0 : (now - t0) / 1000;
-    const S = Math.max(W, H);
+    const S = Math.min(Math.max(W, H), W * 1.4);
     const P = plumes.map((p) => ({
       x: (p.x + Math.sin(t * p.fx + p.x * 9) * p.ax) * W,
       y: (p.y + Math.cos(t * p.fy + p.y * 7) * p.ay) * H,
@@ -234,7 +271,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
     ctx.clearRect(0, 0, W, H);
     counts.fill(0);
     for (let i = 0; i < N; i++) {
-      const h = Math.min(1, heat[i] + amb[i]);
+      const h = Math.min(1, (heat[i] + amb[i]) * damp[i]);
       const b = Math.min(LEVELS - 1, (h * (LEVELS - 1) + 0.5) | 0);
       bucket[i] = b;
       counts[b]++;
@@ -277,6 +314,12 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   function wake() { if (!raf && visible()) { last = performance.now(); raf = requestAnimationFrame(loop); } }
 
   new ResizeObserver(() => resize()).observe(canvas);
+  if (avoid) {
+    const remeasure = () => { measureText(); draw(); };
+    document.fonts?.ready.then(remeasure);
+    setTimeout(remeasure, 1600); // after the intro choreography lands
+    new ResizeObserver(remeasure).observe(host);
+  }
   new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; wake(); }).observe(canvas);
   document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; wake(); });
   window.addEventListener('scroll', () => { rect = null; }, { passive: true });
@@ -290,6 +333,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   wake();
 
   return {
-    repaint() { palette(); draw(); wake(); },
+    repaint() { palette(); measureText(); draw(); wake(); },
+    remeasure() { measureText(); draw(); },
   };
 }

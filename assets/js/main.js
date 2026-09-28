@@ -62,6 +62,7 @@ safe('field', () => {
   const field = initField($('#field'), {
     host: $('#top'),
     preset: 'hero',
+    avoid: '.eyebrow, .hero-name .line > span, .hero-lede, .hero-actions, .meta-grid dd, .meta-grid dt, .logo-strip-label',
     onStats({ temp, x, y }) {
       if (!readout.t) return;
       readout.x.textContent = x == null ? '0000' : String(Math.round(x)).padStart(4, '0');
@@ -74,7 +75,7 @@ safe('field', () => {
 });
 safe('field-contact', () => {
   const c = $('#field-contact');
-  if (c) repaints.push(initField(c, { host: $('#contact'), preset: 'calm' }).repaint);
+  if (c) repaints.push(initField(c, { host: $('#contact'), preset: 'calm', avoid: '.section-aside, .contact-line, .contact-actions' }).repaint);
 });
 
 /* ---------- agent log: oldest run re-executes at the bottom ---------- */

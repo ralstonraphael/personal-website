@@ -69,6 +69,8 @@
   --pixel-off: rgba(17, 17, 16, 0.055);
   --field-dot: #111110;
   --field-dot-alpha: 0.17;
+  --field-max-alpha: 1;
+  --field-text-floor: 0.1;
   --paper-dot: rgba(17, 17, 16, 0.075);
 
   --shadow-sm: 0 1px 2px rgba(17, 17, 16, 0.05);
@@ -135,6 +137,8 @@
   --pixel-off: rgba(242, 241, 236, 0.05);
   --field-dot: #f2f1ec;
   --field-dot-alpha: 0.14;
+  --field-max-alpha: 0.82;
+  --field-text-floor: 0.05;
   --paper-dot: rgba(242, 241, 236, 0.06);
 
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
@@ -251,7 +255,9 @@ html:not(.js) [data-js] { display: none !important; }
   transition: transform 0.35s var(--ease-out), box-shadow 0.3s;
 }
 .logo-tile .logo { width: 58%; height: 58%; }
-.logo-tile-glyph { font-size: 13px; font-weight: 500; color: var(--ink-2); }
+.logo-tile-glyph { font-size: 15px; font-weight: 620; letter-spacing: -0.03em; color: var(--ink); }
+.logo-tile-serif { font-family: ui-serif, Georgia, "Times New Roman", serif; font-weight: 500; font-size: 17px; }
+.xp-item:hover .logo-tile-glyph, .xp-item.is-open .logo-tile-glyph, .edu-row:hover .logo-tile-glyph { background: var(--grad-thermal), var(--glass-bg-strong); -webkit-background-clip: text, border-box; background-clip: text, border-box; color: transparent; }
 
 .logo-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
 .logo-strip-label { font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
@@ -263,7 +269,11 @@ html:not(.js) [data-js] { display: none !important; }
   box-shadow: inset 0 1px 0 var(--glass-highlight), 0 0 0 1px var(--glass-edge);
   transition: transform 0.25s var(--ease-out), color 0.2s, box-shadow 0.25s var(--ease-out);
 }
-.logo-chip .logo { height: 18px; width: calc(18px * var(--ar, 3)); }
+.logo-chip { gap: 8px; }
+.logo-chip .logo { height: var(--lh, 18px); width: calc(var(--lh, 18px) * var(--ar, 3)); }
+.logo-chip-name { font-size: 14.5px; font-weight: 600; letter-spacing: -0.03em; color: currentColor; }
+.logo-chip-name.is-solo { font-size: 15px; letter-spacing: -0.035em; }
+.logo-chip-name.is-serif { font-family: ui-serif, Georgia, "Times New Roman", serif; font-weight: 500; letter-spacing: -0.01em; }
 .logo-chip-tip {
   position: absolute; left: 50%; bottom: calc(100% + 8px); z-index: 5; pointer-events: none;
   padding: 5px 9px; border-radius: 7px; font-size: 10.5px; white-space: nowrap; color: var(--ink);
@@ -275,29 +285,28 @@ html:not(.js) [data-js] { display: none !important; }
 @media (hover: hover) and (pointer: fine) {
   .logo-chip:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--glass-highlight), 0 0 0 1px var(--glass-edge), var(--shadow-md); }
   .logo-chip:hover .logo { background: var(--grad-thermal); }
+  .logo-chip:hover .logo-chip-name { background: var(--grad-thermal); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .logo-chip:hover .logo-chip-tip { opacity: 1; transform: translate(-50%, 0); }
   .logo-strip:has(.logo-chip:hover) .logo-chip:not(:hover) { color: var(--faint); }
 }
 
-/* logo map: one place for every file + its aspect ratio (wordmarks in the strip, marks in tiles) */
+/* logo map: one place for every file, its aspect ratio (--ar) and strip height (--lh).
+   Everything renders as a monochrome mask so seven brands read as one family. */
 .logo[data-logo] { -webkit-mask-image: var(--src); mask-image: var(--src); }
-.logo[data-logo="ramp"] { --src: url("../logos/ramp.svg"); --ar: 3.2; }
-.logo[data-logo="datagrid"] { --src: url("../logos/datagrid.svg"); --ar: 4.2; }
-.logo[data-logo="procore"] { --src: url("../logos/procore.svg"); --ar: 4.6; }
-.logo[data-logo="umg"] { --src: url("../logos/umg.svg"); --ar: 3.4; }
-.logo[data-logo="sofi"] { --src: url("../logos/sofi.svg"); --ar: 2.4; }
-.logo[data-logo="longitude"] { --src: url("../logos/longitude.svg"); --ar: 4.4; }
-.logo[data-logo="trinity"] { --src: url("../logos/trinity.svg"); --ar: 3.6; }
+.logo[data-logo="ramp"] { --src: url("../logos/ramp-wordmark.svg"); --ar: 3.62; --lh: 19px; }
+.logo[data-logo="datagrid-chip"] { --src: url("../logos/datagrid-mark.png"); --ar: 1; --lh: 18px; }
+.logo[data-logo="procore"] { --src: url("../logos/procore-wordmark.svg"); --ar: 7.52; --lh: 13px; }
+.logo[data-logo="umg"] { --src: url("../logos/umg-wordmark.svg"); --ar: 2.09; --lh: 27px; }
+.logo[data-logo="sofi"] { --src: url("../logos/sofi-wordmark.svg"); --ar: 3.66; --lh: 20px; }
+.logo[data-logo="biodesign"] { --src: url("../logos/biodesign-wordmark.png"); --ar: 2.92; --lh: 28px; }
 .logo[data-logo="ramp-mark"] { --src: url("../logos/ramp-mark.svg"); }
-.logo[data-logo="datagrid-mark"] { --src: url("../logos/datagrid-mark.svg"); }
-.logo[data-logo="umg-mark"] { --src: url("../logos/umg-mark.svg"); }
+.logo[data-logo="datagrid-mark"] { --src: url("../logos/datagrid-mark.png"); }
+.logo[data-logo="republic-mark"] { --src: url("../logos/republic-records.svg"); }
 .logo[data-logo="sofi-mark"] { --src: url("../logos/sofi-mark.svg"); }
-.logo[data-logo="longitude-mark"] { --src: url("../logos/longitude-mark.svg"); }
-.logo[data-logo="trinity-mark"] { --src: url("../logos/trinity-mark.svg"); }
-.logo[data-logo="norstella"] { --src: url("../logos/norstella.svg"); --ar: 4.5; }
-.logo[data-logo="biodesign"] { --src: url("../logos/biodesign.svg"); --ar: 4; }
-.logo[data-logo="norstella-mark"] { --src: url("../logos/norstella-mark.svg"); }
-.logo[data-logo="biodesign-mark"] { --src: url("../logos/biodesign-mark.svg"); }
+.logo[data-logo="stanford-mark"] { --src: url("../logos/stanford-mark.svg"); }
+.logo[data-logo="github"] { --src: url("../logos/github.svg"); }
+.logo[data-logo="linkedin"] { --src: url("../logos/linkedin.svg"); }
+.btn .btn-logo { width: 16px; height: 16px; }
 
 /* ---------- buttons ---------- */
 .btn {
@@ -881,6 +890,13 @@ kbd {
 }
 
 @media (max-width: 900px) {
+  /* the nav floats over the heat field here, so it always gets its glass */
+  .nav-inner {
+    background: color-mix(in oklab, var(--bg) 72%, transparent);
+    -webkit-backdrop-filter: blur(18px) saturate(170%); backdrop-filter: blur(18px) saturate(170%);
+    border-color: var(--glass-border);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 0 0 1px var(--glass-edge);
+  }
   .hero { min-height: auto; padding-top: calc(var(--nav-h) + 88px); }
   .hero-name { font-size: min(21vw, 11.5rem); }
   .hero-bottom { max-width: none; }
@@ -908,7 +924,8 @@ kbd {
   .logo-strip { gap: 6px; }
   .logo-strip-label { width: 100%; margin-bottom: 2px; }
   .logo-chip { height: 40px; padding: 0 12px; }
-  .logo-chip .logo { height: 15px; width: calc(15px * var(--ar, 3)); }
+  .logo-chip .logo { height: calc(var(--lh, 18px) * 0.85); width: calc(var(--lh, 18px) * 0.85 * var(--ar, 3)); }
+  .logo-chip-name { font-size: 13.5px; }
   .impact-grid { gap: 8px; }
   .stat { min-height: 138px; padding: 18px 16px 16px; gap: 20px; border-radius: 14px; }
   .stat-num { font-size: 2.3rem; }
