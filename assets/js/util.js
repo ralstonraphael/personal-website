@@ -6,6 +6,8 @@ export const prefersReducedMotion = () =>
 export const $ = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+export const isMac = /Mac|iPhone|iPad/.test(navigator.userAgentData?.platform || navigator.platform || '');
+
 const probe = document.createElement('canvas').getContext('2d');
 
 // Any CSS colour string -> [r, g, b]
@@ -29,16 +31,32 @@ export const mix = (a, b, t) => [
 
 export const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+};
+
+// Site-wide motion switch (WCAG 2.2.2): pauses ambient loops and CSS loops.
+const motionListeners = new Set();
+let motionOn = store.get('rr:motion') !== 'off';
+export const motion = {
+  get on() { return motionOn; },
+  set on(v) {
+    motionOn = !!v;
+    store.set('rr:motion', motionOn ? 'on' : 'off');
+    document.documentElement.dataset.motion = motionOn ? 'on' : 'off';
+    motionListeners.forEach((fn) => fn(motionOn));
+  },
+  subscribe(fn) { motionListeners.add(fn); },
+};
+document.documentElement.dataset.motion = motionOn ? 'on' : 'off';
+
 // Tiny synthesized UI "tick". Off by default; the visitor opts in.
 let audio = null;
-let soundOn = false;
-try { soundOn = localStorage.getItem('rr:sound') === '1'; } catch {}
+let soundOn = store.get('rr:sound') === '1';
 export const sound = {
   get on() { return soundOn; },
-  set on(v) {
-    soundOn = !!v;
-    try { localStorage.setItem('rr:sound', soundOn ? '1' : '0'); } catch {}
-  },
+  set on(v) { soundOn = !!v; store.set('rr:sound', soundOn ? '1' : '0'); },
   tick(pitch = 1) {
     if (!soundOn) return;
     try {
@@ -63,15 +81,19 @@ export const sound = {
   },
 };
 
-// Toast for small confirmations ("copied").
+// Toast for small confirmations.
 let toastTimer = 0;
 export function toast(msg) {
-  let el = document.getElementById('toast');
+  const el = document.getElementById('toast');
   if (!el) return;
-  el.querySelector('[data-toast-msg]').textContent = msg;
+  const text = el.querySelector('[data-toast-msg]');
+  text.textContent = msg;
   el.classList.add('is-on');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('is-on'), 1800);
+  toastTimer = setTimeout(() => {
+    el.classList.remove('is-on');
+    setTimeout(() => { if (!el.classList.contains('is-on')) text.textContent = ''; }, 400);
+  }, 1800);
 }
 
 export async function copyText(text) {
@@ -79,6 +101,7 @@ export async function copyText(text) {
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
+    const prev = document.activeElement;
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.setAttribute('readonly', '');
@@ -89,6 +112,7 @@ export async function copyText(text) {
     let ok = false;
     try { ok = document.execCommand('copy'); } catch {}
     ta.remove();
+    prev?.focus?.({ preventScroll: true });
     return ok;
   }
 }

@@ -1,77 +1,115 @@
-// Heat field: a cursor-reactive dot grid that remembers where you've been.
-// Dots warm up under the pointer, drift away from it, spring back, and cool
-// off over ~1.5s. Clicks send a ripple through the grid. Colours are read
-// from CSS custom properties so the canvas always matches the theme.
+// Thermal field: a pixel heat map that doubles as the page background.
+// A few slow "plumes" drift across the grid; the pointer adds heat, pushes
+// pixels around and leaves a cooling trail; clicks send a ripple through it.
+// Low heat renders as a small grey dot, high heat as a full-size pixel coloured
+// along a thermal ramp (ice → blue → violet → red → orange → yellow), so hot
+// regions read as a pixelated gradient. Colours come from CSS custom props.
 
-import { prefersReducedMotion, readColor, mix } from './util.js';
+import { prefersReducedMotion, motion, readColor, mix } from './util.js';
 
-const LEVELS = 24; // heat buckets — one fillStyle per bucket per frame
+const LEVELS = 40; // heat buckets: one fillStyle per bucket per frame
+const STOPS = ['--th-1', '--th-2', '--th-3', '--th-4', '--th-5', '--th-6', '--th-7', '--th-8', '--th-9'];
 
-export function initField(canvas, { host = canvas.parentElement, onStats } = {}) {
+// Plume presets: positions/radii are fractions of the canvas, drift is slow.
+const PRESETS = {
+  // hero: one plume behind the agent log, one behind the stat cards, a faint third up top
+  hero: [
+    { x: 0.83, y: 0.42, r: 0.095, a: 0.98, fx: 0.11, fy: 0.07, ax: 0.035, ay: 0.03 },
+    { x: 0.70, y: 0.86, r: 0.07, a: 0.8, fx: 0.08, fy: 0.13, ax: 0.05, ay: 0.02 },
+    { x: 0.99, y: 0.10, r: 0.05, a: 0.55, fx: 0.14, fy: 0.09, ax: 0.02, ay: 0.02 },
+  ],
+  heroNarrow: [
+    { x: 0.92, y: 0.07, r: 0.16, a: 0.9, fx: 0.10, fy: 0.08, ax: 0.05, ay: 0.015 },
+    { x: 0.08, y: 0.95, r: 0.14, a: 0.6, fx: 0.08, fy: 0.12, ax: 0.05, ay: 0.01 },
+  ],
+  calm: [
+    { x: 0.9, y: 0.55, r: 0.11, a: 0.9, fx: 0.07, fy: 0.09, ax: 0.03, ay: 0.08 },
+    { x: 0.68, y: 0.98, r: 0.08, a: 0.6, fx: 0.1, fy: 0.06, ax: 0.05, ay: 0.02 },
+  ],
+};
+
+export function initField(canvas, { host = canvas.parentElement, preset = 'hero', onStats } = {}) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const reduce = prefersReducedMotion();
 
-  let W = 0, H = 0, dpr = 1, gap = 22, cols = 0, rows = 0, N = 0;
-  let heat, spark, ox, oy, vx, vy, bucket, order;
+  let W = 0, H = 0, dpr = 1, gap = 22, cols = 0, rows = 0, N = 0, maxS = 20;
+  let heat, amb, ox, oy, vx, vy, bucket, order;
   const counts = new Int32Array(LEVELS);
   const starts = new Int32Array(LEVELS);
+  const fill = new Int32Array(LEVELS);
   let styles = [], sizes = [];
+  let plumes = PRESETS[preset];
 
   const pointer = { x: -1e4, y: -1e4, px: -1e4, py: -1e4, inside: false, speed: 0 };
   const ripples = [];
-  let raf = 0, visible = true, last = 0, t0 = performance.now();
-  let statsAt = 0, frame = 0;
+  let raf = 0, inView = false, pageVisible = !document.hidden, last = 0, t0 = performance.now();
+  let statsAt = 0, frame = 0, lastInput = performance.now();
+  let rect = null; // cached canvas rect; invalidated on scroll/resize
+
+  const still = () => reduce || !motion.on;
+  const visible = () => inView && pageVisible;
 
   function palette() {
     const cs = getComputedStyle(canvas);
     const dot = readColor(cs.getPropertyValue('--field-dot').trim() || '#1a1a1a');
-    const a1 = readColor(cs.getPropertyValue('--accent').trim() || '#ff5a1f');
-    const a2 = readColor(cs.getPropertyValue('--accent-deep').trim() || '#c2410c');
-    const restAlpha = parseFloat(cs.getPropertyValue('--field-dot-alpha')) || 0.18;
-    styles = [];
-    sizes = [];
+    const restAlpha = parseFloat(cs.getPropertyValue('--field-dot-alpha')) || 0.17;
+    const ramp = STOPS.map((v) => readColor(cs.getPropertyValue(v).trim() || '#ff4f1a'));
+    styles = []; sizes = [];
     for (let i = 0; i < LEVELS; i++) {
       const h = i / (LEVELS - 1);
-      // grey dot → accent at ~0.55 → deep accent at 1
-      const c = h < 0.55 ? mix(dot, a1, h / 0.55) : mix(a1, a2, (h - 0.55) / 0.45);
-      const alpha = restAlpha + (1 - restAlpha) * Math.min(1, h * 1.6);
+      let c, alpha;
+      if (h < 0.1) { // resting dot fades into the first thermal stop
+        c = mix(dot, ramp[0], h / 0.1);
+        alpha = restAlpha + (0.5 - restAlpha) * (h / 0.1);
+      } else {
+        const p = ((h - 0.1) / 0.9) * (ramp.length - 1);
+        const k = Math.min(ramp.length - 2, Math.floor(p));
+        c = mix(ramp[k], ramp[k + 1], p - k);
+        alpha = Math.min(1, 0.5 + (h - 0.1) * 1.2);
+      }
       styles.push(`rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${alpha.toFixed(3)})`);
-      sizes.push(1.6 + h * 3.4); // px — reads as a dot at rest, a pixel when hot
+      // dot at rest → full pixel when hot (smoothstep 0.12..0.8)
+      const s = Math.min(1, Math.max(0, (h - 0.12) / 0.68));
+      sizes.push(1.6 + (maxS - 1.6) * s * s * (3 - 2 * s));
     }
   }
 
   function resize() {
+    rect = null;
     const r = canvas.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // chunky pixels don't need retina resolution; capping keeps fill cost down
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     W = Math.max(1, r.width);
     H = Math.max(1, r.height);
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     gap = W < 640 ? 18 : 22;
+    maxS = gap - 7;
+    if (preset === 'hero') plumes = W < 900 ? PRESETS.heroNarrow : PRESETS.hero;
     cols = Math.ceil(W / gap) + 1;
     rows = Math.ceil(H / gap) + 1;
     N = cols * rows;
-    heat = new Float32Array(N);
-    spark = new Float32Array(N);
-    for (let i = 0; i < N; i++) if (((i * 2654435761) >>> 0) % 211 === 0) spark[i] = 0.32;
+    heat = new Float32Array(N); amb = new Float32Array(N);
     ox = new Float32Array(N); oy = new Float32Array(N);
     vx = new Float32Array(N); vy = new Float32Array(N);
     bucket = new Uint8Array(N);
     order = new Int32Array(N);
     palette();
-    draw(performance.now());
+    ambient(performance.now());
+    draw();
   }
 
   function local(e) {
-    const r = canvas.getBoundingClientRect();
-    return [e.clientX - r.left, e.clientY - r.top];
+    rect ||= canvas.getBoundingClientRect();
+    return [e.clientX - rect.left, e.clientY - rect.top];
   }
 
   function onMove(e) {
     const [x, y] = local(e);
     if (!pointer.inside) { pointer.px = x; pointer.py = y; }
     pointer.x = x; pointer.y = y; pointer.inside = true;
+    lastInput = performance.now();
     wake();
   }
   function onLeave() { pointer.inside = false; pointer.x = pointer.y = -1e4; }
@@ -79,6 +117,7 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
     const [x, y] = local(e);
     ripples.push({ x, y, r: 0, life: 1 });
     if (ripples.length > 6) ripples.shift();
+    lastInput = performance.now();
     wake();
   }
 
@@ -104,6 +143,30 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
     }
   }
 
+  // Ambient plumes: sum of drifting gaussians, written into amb[].
+  function ambient(now) {
+    const t = still() ? 0 : (now - t0) / 1000;
+    const S = Math.max(W, H);
+    const P = plumes.map((p) => ({
+      x: (p.x + Math.sin(t * p.fx + p.x * 9) * p.ax) * W,
+      y: (p.y + Math.cos(t * p.fy + p.y * 7) * p.ay) * H,
+      k: 1 / (2 * (p.r * S) ** 2),
+      a: p.a * (0.9 + 0.1 * Math.sin(t * 0.5 + p.x * 5)),
+    }));
+    for (let r = 0, i = 0; r < rows; r++) {
+      const y = r * gap;
+      for (let c = 0; c < cols; c++, i++) {
+        const x = c * gap;
+        let v = 0;
+        for (let k = 0; k < P.length; k++) {
+          const dx = x - P[k].x, dy = y - P[k].y;
+          v += P[k].a * Math.exp(-(dx * dx + dy * dy) * P[k].k);
+        }
+        amb[i] = v;
+      }
+    }
+  }
+
   function step(now) {
     const dt = Math.min(48, now - (last || now)) / 16.667; // frames @60fps
     last = now;
@@ -114,14 +177,16 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
       const dx = pointer.x - pointer.px, dy = pointer.y - pointer.py;
       const dist = Math.hypot(dx, dy);
       pointer.speed = pointer.speed * 0.8 + dist * 0.2;
-      const steps = Math.min(12, Math.ceil(dist / (gap * 0.75)) || 1);
-      const energy = Math.min(1, 0.05 + pointer.speed / 40);
-      for (let s = 1; s <= steps; s++) {
-        const k = s / steps;
-        stir(pointer.px + dx * k, pointer.py + dy * k, 110, (0.09 * energy) / steps * 4, (0.9 * energy) / steps * 2);
+      if (dist > 0.1) {
+        const steps = Math.min(12, Math.ceil(dist / (gap * 0.75)) || 1);
+        const energy = Math.min(1, 0.05 + pointer.speed / 40);
+        for (let s = 1; s <= steps; s++) {
+          const k = s / steps;
+          stir(pointer.px + dx * k, pointer.py + dy * k, 120, (0.1 * energy) / steps * 4, (0.9 * energy) / steps * 2);
+        }
       }
       pointer.px = pointer.x; pointer.py = pointer.y;
-    }
+    } else pointer.speed *= 0.8;
 
     // ripples: an expanding ring that heats and shoves what it passes
     for (let k = ripples.length - 1; k >= 0; k--) {
@@ -149,7 +214,7 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
     // integrate: springs, damping, cooling
     const cool = Math.pow(0.972, dt);
     const damp = Math.pow(0.84, dt);
-    let energy = 0;
+    let energy = 0, moving = 0;
     for (let i = 0; i < N; i++) {
       let h = heat[i];
       if (h > 0.0005) { h *= cool; heat[i] = h; energy += h; } else heat[i] = 0;
@@ -159,29 +224,24 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
         ox[i] += vx[i] * dt; oy[i] += vy[i] * dt;
         if (Math.abs(ox[i]) < 0.02 && Math.abs(vx[i]) < 0.02) { ox[i] = 0; vx[i] = 0; }
         if (Math.abs(oy[i]) < 0.02 && Math.abs(vy[i]) < 0.02) { oy[i] = 0; vy[i] = 0; }
+        moving++;
       }
     }
-    return energy;
+    return { energy, moving };
   }
 
-  function draw(now) {
+  function draw() {
     ctx.clearRect(0, 0, W, H);
-    const t = (now - t0) / 1000;
-    // ambient: a slow diagonal swell so the grid breathes when idle
-    const amb = reduce ? 0 : 1;
     counts.fill(0);
-    for (let r = 0, i = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++, i++) {
-        const wave = amb ? Math.max(0, Math.sin((c * 0.16 + r * 0.1) - t * 0.9)) : 0;
-        const h = Math.min(1, Math.max(heat[i] + wave * wave * wave * 0.1, spark[i]));
-        const b = Math.min(LEVELS - 1, (h * (LEVELS - 1) + 0.5) | 0);
-        bucket[i] = b;
-        counts[b]++;
-      }
+    for (let i = 0; i < N; i++) {
+      const h = Math.min(1, heat[i] + amb[i]);
+      const b = Math.min(LEVELS - 1, (h * (LEVELS - 1) + 0.5) | 0);
+      bucket[i] = b;
+      counts[b]++;
     }
     let acc = 0;
     for (let b = 0; b < LEVELS; b++) { starts[b] = acc; acc += counts[b]; }
-    const fill = starts.slice();
+    fill.set(starts);
     for (let i = 0; i < N; i++) order[fill[bucket[i]]++] = i;
     for (let b = 0; b < LEVELS; b++) {
       const n = counts[b];
@@ -199,31 +259,28 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
 
   function loop(now) {
     raf = 0;
-    if (!visible) return;
-    const energy = step(now);
-    draw(now);
+    if (!visible()) return;
+    const { energy, moving } = step(now);
+    const interacting = pointer.speed > 0.05 || ripples.length > 0 || energy > 0.01 || moving > 0;
+    // Plumes drift slowly, so ambient-only frames run at 30fps, dropping to
+    // ~15fps after 12s without input. Interaction always gets full rate.
+    const idleFor = now - lastInput;
+    const skip = interacting ? 1 : idleFor > 12000 ? 4 : 2;
+    if (!still() && frame % skip === 0) ambient(now);
+    if (interacting || frame % skip === 0) draw();
     if (onStats && now - statsAt > 120) {
       statsAt = now;
-      onStats({ temp: Math.min(1, energy / 60), x: pointer.inside ? pointer.x : null, y: pointer.inside ? pointer.y : null, dots: N });
+      onStats({ temp: Math.min(1, energy / 60), x: pointer.inside ? pointer.x : null, y: pointer.inside ? pointer.y : null });
     }
-    // Keep animating while anything is moving; ambient-only frames when idle.
-    // With reduced motion we stop entirely once things settle.
-    const busy = energy > 0.01 || ripples.length || pointer.inside;
-    if (busy || !reduce) raf = requestAnimationFrame(loop);
+    if (interacting || !still()) raf = requestAnimationFrame(loop);
   }
-  function wake() { if (!raf && visible) { last = performance.now(); raf = requestAnimationFrame(loop); } }
+  function wake() { if (!raf && visible()) { last = performance.now(); raf = requestAnimationFrame(loop); } }
 
-  const ro = new ResizeObserver(() => resize());
-  ro.observe(canvas);
-  const io = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting && !document.hidden;
-    if (visible) wake();
-  });
-  io.observe(canvas);
-  document.addEventListener('visibilitychange', () => {
-    visible = !document.hidden;
-    if (visible) wake();
-  });
+  new ResizeObserver(() => resize()).observe(canvas);
+  new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; wake(); }).observe(canvas);
+  document.addEventListener('visibilitychange', () => { pageVisible = !document.hidden; wake(); });
+  window.addEventListener('scroll', () => { rect = null; }, { passive: true });
+  motion.subscribe(() => { ambient(performance.now()); draw(); wake(); });
 
   host.addEventListener('pointermove', onMove, { passive: true });
   host.addEventListener('pointerdown', onDown, { passive: true });
@@ -233,7 +290,6 @@ export function initField(canvas, { host = canvas.parentElement, onStats } = {})
   wake();
 
   return {
-    repaint() { palette(); wake(); },
-    pulse(x = W * 0.5, y = H * 0.5) { ripples.push({ x, y, r: 0, life: 1 }); wake(); },
+    repaint() { palette(); draw(); wake(); },
   };
 }

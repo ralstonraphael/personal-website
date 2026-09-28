@@ -1,8 +1,9 @@
 // Pixel displays for project cards. Each one shows the project's job as a
-// transformation: messy input on the left, structured output behind a scan
-// line that sweeps across on hover (or when scrolled into view on touch).
+// transformation: messy input (grey) on the left, structured output (thermal
+// gradient) behind a scan line that sweeps across on hover / focus, or when
+// scrolled into view on touch devices.
 //
-// kinds: doc → report, web → table, wave → prompt, ticket → sheet
+// kinds: doc → report, web → table, trace → prompt diff, sms → answers
 
 import { prefersReducedMotion, readColor, mix, clamp } from './util.js';
 
@@ -36,41 +37,41 @@ function patterns(kind, cols, rows, seed) {
     // html soup → table
     for (let i = 0; i < cols * rows; i++) if (R() < 0.3) messy[i] = 1;
     for (let r = 1; r < rows; r += 3) {
-      for (let c = 1; c < cols - 1; c++) {
-        const isSep = c % 12 === 0;
-        if (isSep || R() < 0.82) set(clean, c, r);
-      }
+      for (let c = 1; c < cols - 1; c++) if (c % 12 === 0 || R() < 0.82) set(clean, c, r);
     }
-  } else if (kind === 'wave') {
-    // call audio → prompt text
-    const mid = (rows - 1) / 2;
-    for (let c = 1; c < cols - 1; c += 2) {
-      const a = Math.abs(Math.sin(c * 0.21) * Math.sin(c * 0.057 + 1.3)) * mid * (0.35 + R() * 0.75);
-      for (let r = Math.round(mid - a); r <= Math.round(mid + a); r++) set(messy, c, r);
+  } else if (kind === 'trace') {
+    // agent trace spans (a waterfall) → a tidy prompt diff (+/- lines)
+    let start = 1;
+    for (let r = 1; r < rows - 1; r += 2) {
+      const len = 3 + ((R() * (cols * 0.45)) | 0);
+      for (let c = start; c < Math.min(cols - 1, start + len); c++) set(messy, c, r);
+      start = clamp(start + ((R() * 8) | 0) - 1, 1, cols - 8);
     }
     for (let r = 2; r < rows - 1; r += 2) {
-      const indent = r === 2 ? 1 : 3;
-      const len = r === 2 ? 10 : 8 + ((R() * (cols - 16)) | 0);
-      for (let c = indent; c < indent + len && c < cols - 1; c++) if (R() > 0.08) set(clean, c, r);
+      set(clean, 1, r); set(clean, 2, r); // gutter marker
+      const len = 6 + ((R() * (cols - 14)) | 0);
+      for (let c = 5; c < 5 + len && c < cols - 1; c++) if (R() > 0.1) set(clean, c, r);
     }
   } else {
-    // handwriting strokes → spreadsheet grid
-    for (let s = 0; s < 7; s++) {
-      let c = 1 + ((R() * (cols - 8)) | 0), r = 1 + ((R() * (rows - 2)) | 0);
-      for (let k = 0; k < 18; k++) {
-        set(messy, c, r);
-        c += R() < 0.75 ? 1 : 0;
-        r += R() < 0.33 ? -1 : R() < 0.5 ? 1 : 0;
-        r = clamp(r, 1, rows - 2);
-      }
+    // sms bubbles (scattered, uneven) → aligned answer cards
+    for (let b = 0; b < 6; b++) {
+      const w = 6 + ((R() * 14) | 0), h = 2 + ((R() * 2) | 0);
+      const c0 = R() < 0.5 ? 1 + ((R() * 6) | 0) : cols - w - 1 - ((R() * 6) | 0);
+      const r0 = 1 + ((R() * (rows - h - 2)) | 0);
+      for (let r = r0; r < r0 + h; r++) for (let c = c0; c < c0 + w; c++) if (R() > 0.2) set(messy, c, r);
     }
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      if (r % 4 === 0 || c % 9 === 0) set(clean, c, r);
-      else if (r % 4 === 2 && c % 9 > 1 && c % 9 < 2 + ((R() * 6) | 0)) set(clean, c, r);
+    for (let r = 1; r < rows - 1; r++) for (let c = 1; c < cols - 1; c++) {
+      const cardRow = (r - 1) % 5;
+      if (cardRow === 0 || cardRow === 3) { if (c % 16 !== 0) set(clean, c, r); }
+      else if (cardRow === 1 && c % 16 === 1) set(clean, c, r);
+      else if (cardRow === 2 && c % 16 > 2 && c % 16 < 4 + ((R() * 10) | 0)) set(clean, c, r);
     }
   }
   return { messy, clean };
 }
+
+const HQ = 8; // heat quantization
+const CB = 16; // colour buckets across the width
 
 export function initPixels(canvas) {
   const card = canvas.closest('[data-pixel-host]') || canvas.parentElement;
@@ -78,21 +79,30 @@ export function initPixels(canvas) {
   const seed = parseInt(canvas.dataset.seed || '7', 10);
   const ctx = canvas.getContext('2d');
   const reduce = prefersReducedMotion();
-  const hoverable = window.matchMedia('(hover: hover)').matches;
+  const hoverable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  let W = 0, H = 0, cols = 0, rows = 0, cell = 7, dot = 5, pat;
+  let W = 0, H = 0, cols = 0, rows = 0, cell = 7, dot = 5, pat, heat;
   let progress = 0, target = 0, raf = 0, visible = false, last = 0;
-  let colors = null;
-  const ptr = { x: -1e4, y: -1e4, on: false };
-  const heat = { data: null };
+  let L = null; // style lookup tables
+  const ptr = { x: -1e4, y: -1e4, fresh: false };
 
   function palette() {
     const cs = getComputedStyle(canvas);
-    colors = {
-      off: readColor(cs.getPropertyValue('--heat-0').trim()),
-      ink: readColor(cs.getPropertyValue('--ink').trim()),
-      accent: readColor(cs.getPropertyValue('--accent').trim()),
-    };
+    const get = (v) => readColor(cs.getPropertyValue(v).trim());
+    const ink = get('--ink');
+    const offCss = cs.getPropertyValue('--pixel-off').trim();
+    const th = ['--th-2', '--th-3', '--th-4', '--th-5', '--th-6', '--th-7', '--th-8'].map(get);
+    const hot = get('--th-9');
+    const rgba = (c, a) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a.toFixed(3)})`;
+    const along = (t) => { const p = t * (th.length - 1), k = Math.min(th.length - 2, Math.floor(p)); return mix(th[k], th[k + 1], p - k); };
+    L = { off: [], messy: [], clean: [], front: [] };
+    for (let h = 0; h <= HQ; h++) {
+      const t = h / HQ, c = along(0.35 + t * 0.65);
+      L.off.push(h ? rgba(c, 0.25 + t * 0.55) : offCss);
+      L.messy.push(h ? rgba(c, 0.55 + t * 0.45) : rgba(ink, 0.3));
+    }
+    for (let b = 0; b < CB; b++) L.clean.push(rgba(along(b / (CB - 1)), 0.92));
+    for (let f = 1; f <= 4; f++) L.front.push(rgba(mix(th[5], hot, f / 4), 0.35 + f * 0.15));
   }
 
   function layout() {
@@ -105,46 +115,40 @@ export function initPixels(canvas) {
     dot = cell - 2;
     cols = Math.floor(W / cell); rows = Math.floor(H / cell);
     pat = patterns(kind, cols, rows, seed);
-    heat.data = new Float32Array(cols * rows);
+    heat = new Float32Array(cols * rows);
     if (reduce) progress = target = 0.5;
     draw();
   }
-
-  const rgb = (c, a = 1) => `rgba(${c[0] | 0},${c[1] | 0},${c[2] | 0},${a})`;
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
     const ox = (W - cols * cell) / 2 + 1, oy = (H - rows * cell) / 2 + 1;
     const front = progress * (cols + 6) - 3; // scan column (fractional)
     let hot = 0;
+    const fresh = ptr.fresh && !reduce;
+    ptr.fresh = false;
     for (let r = 0; r < rows; r++) {
+      const py = oy + r * cell;
       for (let c = 0; c < cols; c++) {
         const i = r * cols + c;
+        const px = ox + c * cell;
+        if (fresh) {
+          const dist = Math.hypot(px + dot / 2 - ptr.x, py + dot / 2 - ptr.y);
+          if (dist < 48) heat[i] = Math.min(1, heat[i] + (1 - dist / 48) * 0.35);
+        }
+        let h = heat[i];
+        if (h > 0.01) { heat[i] = h *= 0.9; hot++; } else h = heat[i] = 0;
         const done = c < front;
         const on = done ? pat.clean[i] : pat.messy[i];
         const d = Math.abs(c - front);
-        const flash = d < 2.5 ? 1 - d / 2.5 : 0;
-        // pointer heat
-        if (ptr.on && !reduce) {
-          const px = ox + c * cell + dot / 2, py = oy + r * cell + dot / 2;
-          const dist = Math.hypot(px - ptr.x, py - ptr.y);
-          if (dist < 48) heat.data[i] = Math.min(1, heat.data[i] + (1 - dist / 48) * 0.25);
-        }
-        const h = heat.data[i];
-        if (h > 0.002) { heat.data[i] = h * 0.9; hot++; } else heat.data[i] = 0;
-
-        let col, a;
-        if (on) {
-          col = flash ? mix(colors.ink, colors.accent, flash) : done ? colors.ink : colors.ink;
-          a = done ? 0.9 : 0.42;
-          if (h) { col = mix(col, colors.accent, h); a = Math.max(a, 0.5 + h * 0.5); }
-        } else {
-          col = flash > 0.6 ? mix(colors.off, colors.accent, (flash - 0.6) * 0.6) : colors.off;
-          a = 1;
-          if (h) { col = mix(colors.off, colors.accent, h * 0.5); }
-        }
-        ctx.fillStyle = rgb(col, a);
-        ctx.fillRect(ox + c * cell, oy + r * cell, dot, dot);
+        const fq = d < 2.5 ? Math.ceil((1 - d / 2.5) * 4) : 0;
+        const hq = Math.round(h * HQ);
+        let style;
+        if (fq && (on || fq > 2)) style = L.front[fq - 1];
+        else if (on) style = done ? L.clean[Math.min(CB - 1, ((c / cols) * CB) | 0)] : L.messy[hq];
+        else style = L.off[hq];
+        ctx.fillStyle = style;
+        ctx.fillRect(px, py, dot, dot);
       }
     }
     return hot > 0;
@@ -155,29 +159,27 @@ export function initPixels(canvas) {
     if (!visible) return;
     const dt = Math.min(48, now - (last || now)) / 1000;
     last = now;
-    const speed = 0.9; // full sweep ≈ 1.1s
     if (progress !== target) {
       const dir = Math.sign(target - progress);
-      progress = clamp(progress + dir * speed * dt, 0, 1);
+      progress = clamp(progress + dir * 0.9 * dt, 0, 1); // full sweep ≈ 1.1s
       if ((dir > 0 && progress >= target) || (dir < 0 && progress <= target)) progress = target;
     }
     const hot = draw();
-    if (progress !== target || hot || ptr.on) raf = requestAnimationFrame(loop);
+    if (progress !== target || hot) raf = requestAnimationFrame(loop);
   }
   const wake = () => { if (!raf && visible) { last = performance.now(); raf = requestAnimationFrame(loop); } };
 
   if (!reduce) {
     if (hoverable) {
       card.addEventListener('pointerenter', () => { target = 1; wake(); });
-      card.addEventListener('pointerleave', () => { target = 0; ptr.on = false; wake(); });
-      card.addEventListener('focusin', () => { target = 1; wake(); });
-      card.addEventListener('focusout', () => { target = 0; wake(); });
+      card.addEventListener('pointerleave', () => { target = 0; wake(); });
     }
+    card.addEventListener('focusin', () => { target = 1; wake(); });
+    card.addEventListener('focusout', (e) => { if (!card.contains(e.relatedTarget)) { target = 0; wake(); } });
     canvas.addEventListener('pointermove', (e) => {
       const r = canvas.getBoundingClientRect();
-      ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; ptr.on = true; wake();
+      ptr.x = e.clientX - r.left; ptr.y = e.clientY - r.top; ptr.fresh = true; wake();
     });
-    canvas.addEventListener('pointerleave', () => { ptr.on = false; });
   }
 
   new ResizeObserver(() => layout()).observe(canvas);
