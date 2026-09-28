@@ -65,10 +65,12 @@ safe('field', () => {
     avoid: '.eyebrow, .hero-name .line > span, .hero-lede, .hero-actions, .meta-grid dd, .meta-grid dt, .logo-strip-label',
     avoidBoxes: '.logo-chip, .impact-grid .stat',
     onStats({ temp, x, y }) {
-      if (!readout.t) return;
-      readout.x.textContent = x == null ? '0000' : String(Math.round(x)).padStart(4, '0');
-      readout.y.textContent = y == null ? '0000' : String(Math.round(y)).padStart(4, '0');
-      readout.t.textContent = temp.toFixed(2);
+      if (!readout.t || !readout.t.offsetParent) return;
+      const nx = x == null ? '0000' : String(Math.round(x)).padStart(4, '0');
+      const ny = y == null ? '0000' : String(Math.round(y)).padStart(4, '0');
+      const nt = temp.toFixed(2);
+      if (nx === readout.x.textContent && ny === readout.y.textContent && nt === readout.t.textContent) return;
+      readout.x.textContent = nx; readout.y.textContent = ny; readout.t.textContent = nt;
       readout.bar.style.transform = `scaleX(${clamp(temp * 1.4, 0.02, 1)})`;
     },
   });
@@ -199,6 +201,7 @@ async function copyEmail(e) {
   } else toast(ok ? `Copied ${EMAIL}` : EMAIL);
 }
 $$('[data-copy-email]').forEach((b) => b.addEventListener('click', copyEmail));
+$$('[data-copy-sr]').forEach((s) => { s.textContent = ' (copies the address)'; });
 
 /* ---------- experience accordion (animated <details>, interruptible) ---------- */
 const accordions = new Map();
@@ -236,7 +239,7 @@ function focusTarget(el) {
 const go = (id, open = false) => () => {
   const el = $(id);
   if (!el) return;
-  el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: open ? 'center' : 'start' });
+  el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   if (open && accordions.has(el)) setTimeout(() => accordions.get(el)(true), reduce ? 0 : 420);
   focusTarget(el);
 };
@@ -303,7 +306,7 @@ syncSound();
 /* ---------- motion switch (footer + palette) ---------- */
 const motionBtns = $$('[data-motion-toggle]');
 const syncMotion = () => motionBtns.forEach((b) => {
-  b.setAttribute('aria-pressed', String(!motion.on));
+  b.setAttribute('aria-pressed', String(!motion.on)); // pressed = paused
   const v = b.querySelector('[data-motion-state]');
   if (v) v.textContent = motion.on ? 'on' : 'off';
 });
@@ -342,6 +345,8 @@ $$('canvas[data-kind]').forEach((c) => safe('pixels', () => repaints.push(initPi
 
 /* ---------- keyboard: ⌘K palette + optional single-key shortcuts ---------- */
 let keysOn = store.get('rr:keys') !== 'off';
+const syncKeysTip = () => $$('[data-keys-tip]').forEach((t) => { t.hidden = !keysOn; });
+syncKeysTip();
 $$('[data-mod]').forEach((k) => { k.textContent = isMac ? '⌘' : 'Ctrl'; });
 safe('palette', () => {
   const palette = initPalette($('#cmdk'), [
@@ -363,7 +368,7 @@ safe('palette', () => {
     { group: 'Actions', label: () => (root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'), icon: '◐', hint: 'T', keywords: 'theme light dark toggle', run: toggleTheme },
     { group: 'Actions', label: () => (motion.on ? 'Pause motion' : 'Resume motion'), icon: '‖', keywords: 'animation reduce stop', run: toggleMotion },
     { group: 'Actions', label: () => (sound.on ? 'Turn off interface sounds' : 'Turn on interface sounds'), icon: '♪', keywords: 'audio click', run: () => soundBtn?.click() },
-    { group: 'Actions', label: () => (keysOn ? 'Turn off single-key shortcuts' : 'Turn on single-key shortcuts'), icon: '⌨', keywords: 'keyboard a e p c t', run: () => { keysOn = !keysOn; store.set('rr:keys', keysOn ? 'on' : 'off'); toast(keysOn ? 'Shortcuts on' : 'Shortcuts off'); } },
+    { group: 'Actions', label: () => (keysOn ? 'Turn off single-key shortcuts' : 'Turn on single-key shortcuts'), icon: '⌨', keywords: 'keyboard a e p c t', run: () => { keysOn = !keysOn; store.set('rr:keys', keysOn ? 'on' : 'off'); syncKeysTip(); toast(keysOn ? 'Shortcuts on' : 'Shortcuts off'); } },
     { group: 'Links', label: 'GitHub: ralstonraphael', icon: '↗', keywords: 'gh code repos', run: () => window.open('https://github.com/ralstonraphael', '_blank', 'noopener') },
     { group: 'Links', label: 'LinkedIn: ralston-raphael', icon: '↗', keywords: 'li', run: () => window.open('https://www.linkedin.com/in/ralston-raphael/', '_blank', 'noopener') },
     { group: 'Links', label: `Email: ${EMAIL}`, icon: '↗', run: () => { window.location.href = 'mailto:' + EMAIL; } },

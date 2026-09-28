@@ -10,13 +10,14 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
   let active = 0;
 
   const labelOf = (cmd) => (typeof cmd.label === 'function' ? cmd.label() : cmd.label);
+  const fold = (t) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
   // Label hits outrank keyword hits, so "gh" finds GitHub before "light".
   const score = (cmd, q) => {
     if (!q) return 1;
-    const label = labelOf(cmd).toLowerCase();
+    const label = fold(labelOf(cmd));
     const words = label.split(/[^a-z0-9]+/).filter(Boolean);
-    const keys = (cmd.keywords || '').toLowerCase().split(/\s+/).filter(Boolean);
+    const keys = fold(cmd.keywords || '').split(/\s+/).filter(Boolean);
     if (label.startsWith(q)) return 7;
     if (words.some((w) => w.startsWith(q))) return 6;
     if (label.includes(q)) return 5;
@@ -35,17 +36,18 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
     li.className = 'cmdk-item';
     li.setAttribute('role', 'option');
     li.setAttribute('aria-selected', String(i === active));
-    li.innerHTML = `<span class="cmdk-icon" aria-hidden="true"></span><span class="cmdk-label"></span>${cmd.hint ? '<kbd class="cmdk-hint" aria-hidden="true"></kbd>' : ''}`;
+    const hint = cmd.hint && shortcutsOn();
+    li.innerHTML = `<span class="cmdk-icon" aria-hidden="true"></span><span class="cmdk-label"></span>${hint ? '<kbd class="cmdk-hint" aria-hidden="true"></kbd>' : ''}`;
     li.querySelector('.cmdk-icon').textContent = cmd.icon || '→';
     li.querySelector('.cmdk-label').textContent = labelOf(cmd);
-    if (cmd.hint) li.querySelector('.cmdk-hint').textContent = cmd.hint;
+    if (hint) li.querySelector('.cmdk-hint').textContent = cmd.hint;
     li.addEventListener('pointermove', () => { if (active !== i) { active = i; sync(); } });
     li.addEventListener('click', () => run(i));
     return li;
   }
 
   function render() {
-    const q = input.value.trim().toLowerCase();
+    const q = fold(input.value.trim());
     items = commands.filter((c) => !c.when || c.when())
       .map((c) => ({ c, s: score(c, q) })).filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s).map((x) => x.c);
@@ -61,12 +63,11 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
           group = cmd.group;
           const gid = `cmdg-${group.toLowerCase()}`;
           const li = document.createElement('li');
-          li.setAttribute('role', 'group');
-          li.setAttribute('aria-labelledby', gid);
-          li.innerHTML = `<div class="cmdk-group" id="${gid}" role="presentation"></div><ul role="none" class="cmdk-sub"></ul>`;
-          li.firstChild.textContent = group;
+          li.setAttribute('role', 'presentation');
+          li.innerHTML = `<ul role="group" aria-labelledby="${gid}" class="cmdk-sub"><li class="cmdk-group" id="${gid}" role="presentation"></li></ul>`;
+          li.querySelector('.cmdk-group').textContent = group;
           list.appendChild(li);
-          groupEl = li.lastChild;
+          groupEl = li.firstChild;
         }
         groupEl.appendChild(option(cmd, i));
       });

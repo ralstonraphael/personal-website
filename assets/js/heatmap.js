@@ -14,8 +14,8 @@ const ROWS = 7;
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const SECTIONS = [
-  ['top', 'intro'], ['about', 'about'], ['work', 'experience'], ['projects', 'projects'],
-  ['activity', 'activity'], ['education', 'education'], ['contact', 'contact'],
+  ['top', 'intro', 'top'], ['about', 'about', 'abt'], ['work', 'experience', 'exp'], ['projects', 'projects', 'proj'],
+  ['activity', 'this card', 'you'], ['education', 'education', 'edu'], ['contact', 'contact', 'hi'],
 ];
 const TICK = 250; // ms per attention sample
 const MIN_SPAN = 240; // samples the timeline covers before it starts compressing (60s)
@@ -124,7 +124,7 @@ export function initHeatmap(root) {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = r.width;
     const narrow = W < 520;
-    left = narrow ? 0 : mode === 'you' ? 78 : 30;
+    left = mode === 'you' ? (narrow ? 34 : 78) : narrow ? 0 : 30;
     gap = narrow ? 2 : 3;
     cols = 53;
     cell = (W - left - gap * (cols - 1)) / cols;
@@ -191,16 +191,16 @@ export function initHeatmap(root) {
       if (!first) return;
       const val = mode === 'github' ? first.month : first.minute;
       if (val === lastVal || val === undefined) return;
-      lastVal = val;
       const lab = mode === 'github' ? MON[val] : `${val}m`;
       const x = left + c * (cell + gap);
       if (x < lastEnd + 6 || (mode === 'github' && c === 0 && col.filter(Boolean).length < ROWS)) return;
+      lastVal = val;
       ctx.fillText(lab, x, 10);
       lastEnd = x + ctx.measureText(lab).width;
     });
     if (left) {
       if (mode === 'github') ['Mon', 'Wed', 'Fri'].forEach((d, k) => ctx.fillText(d, 0, top + [1, 3, 5][k] * (cell + gap) + cell - 2));
-      else SECTIONS.forEach(([, name], r) => ctx.fillText(name, 0, top + r * (cell + gap) + cell / 2 + 3.5));
+      else SECTIONS.forEach(([, name, short], r) => ctx.fillText(left < 60 ? short : name, 0, top + r * (cell + gap) + cell / 2 + 3.5));
     }
 
     let busy = false;
