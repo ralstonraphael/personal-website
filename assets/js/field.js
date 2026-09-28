@@ -28,7 +28,7 @@ const PRESETS = {
   ],
 };
 
-export function initField(canvas, { host = canvas.parentElement, preset = 'hero', avoid = '', onStats } = {}) {
+export function initField(canvas, { host = canvas.parentElement, preset = 'hero', avoid = '', avoidBoxes = '', onStats } = {}) {
   const ctx = canvas.getContext('2d', { alpha: true });
   const reduce = prefersReducedMotion();
 
@@ -109,10 +109,15 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   function measureText() {
     if (!damp) return;
     damp.fill(1);
-    if (!avoid) return;
+    if (!avoid && !avoidBoxes) return;
     const cr = canvas.getBoundingClientRect();
     const boxes = [];
-    host.querySelectorAll(avoid).forEach((el) => {
+    // whole boxes (cards, chips): heat shouldn't smear through their glass
+    if (avoidBoxes) host.querySelectorAll(avoidBoxes).forEach((el) => {
+      const r = el.getBoundingClientRect();
+      if (r.width > 1 && r.height > 1) boxes.push([r.left - cr.left, r.top - cr.top, r.right - cr.left, r.bottom - cr.top]);
+    });
+    if (avoid) host.querySelectorAll(avoid).forEach((el) => {
       const range = document.createRange();
       range.selectNodeContents(el);
       for (const r of range.getClientRects()) {
@@ -314,10 +319,10 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   function wake() { if (!raf && visible()) { last = performance.now(); raf = requestAnimationFrame(loop); } }
 
   new ResizeObserver(() => resize()).observe(canvas);
-  if (avoid) {
+  if (avoid || avoidBoxes) {
     const remeasure = () => { measureText(); draw(); };
     document.fonts?.ready.then(remeasure);
-    setTimeout(remeasure, 1600); // after the intro choreography lands
+    setTimeout(remeasure, 2300); // after the intro choreography lands
     new ResizeObserver(remeasure).observe(host);
   }
   new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; wake(); }).observe(canvas);

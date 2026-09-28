@@ -63,6 +63,7 @@ safe('field', () => {
     host: $('#top'),
     preset: 'hero',
     avoid: '.eyebrow, .hero-name .line > span, .hero-lede, .hero-actions, .meta-grid dd, .meta-grid dt, .logo-strip-label',
+    avoidBoxes: '.logo-chip, .impact-grid .stat',
     onStats({ temp, x, y }) {
       if (!readout.t) return;
       readout.x.textContent = x == null ? '0000' : String(Math.round(x)).padStart(4, '0');
@@ -350,6 +351,13 @@ safe('palette', () => {
     { group: 'Navigate', label: 'Activity heatmap', icon: '§', keywords: 'github contributions attention', run: go('#activity') },
     { group: 'Navigate', label: 'Education', icon: '§', keywords: 'trinity school college', run: go('#education') },
     { group: 'Navigate', label: 'Contact', icon: '§', hint: 'C', run: go('#contact') },
+    { group: 'Experience', label: 'Ramp: AI Product', icon: '→', keywords: 'glass internal ai', run: go('#xp-ramp', true) },
+    { group: 'Experience', label: 'Datagrid → Procore', icon: '→', keywords: 'forward deployed engineer solutions architect agents', run: go('#xp-datagrid', true) },
+    { group: 'Experience', label: 'Universal Music Group', icon: '→', keywords: 'umg republic records data engineering', run: go('#xp-umg', true) },
+    { group: 'Experience', label: 'SoFi', icon: '→', keywords: 'extern fintech', run: go('#xp-sofi', true) },
+    { group: 'Experience', label: 'Norstella', icon: '→', keywords: 'strategy rag flash report', run: go('#xp-norstella', true) },
+    { group: 'Experience', label: 'DxD HealthTech × Stanford Biodesign', icon: '→', keywords: 'biodesign healthtech', run: go('#xp-dxd', true) },
+    { group: 'Experience', label: 'Longitude Capital', icon: '→', keywords: 'venture capital vc', run: go('#xp-longitude', true) },
     { group: 'Actions', label: 'Copy email address', icon: '@', keywords: 'mail contact', run: () => copyEmail() },
     { group: 'Actions', label: 'Print / save résumé as PDF', icon: '⎙', keywords: 'resume cv pdf download', run: () => window.print() },
     { group: 'Actions', label: () => (root.dataset.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'), icon: '◐', hint: 'T', keywords: 'theme light dark toggle', run: toggleTheme },

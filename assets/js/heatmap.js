@@ -99,6 +99,11 @@ export function initHeatmap(root) {
       ghFailed = true;
       // No calendar to show: drop the switch and make this card about the visit.
       seg.hidden = true;
+      const section = root.closest('section');
+      const title = section?.querySelector('.section-title');
+      const aside = section?.querySelector('.section-aside');
+      if (title) title.textContent = 'Your visit';
+      if (aside) aside.textContent = 'live · stays in your browser';
     }
     if (ghFailed) setMode('you', false);
     else if (mode === 'github') { compute(); writeSummary(); wake(true); }

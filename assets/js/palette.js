@@ -15,12 +15,17 @@ export function initPalette(dialog, commands, { shortcutsOn = () => true } = {})
   const score = (cmd, q) => {
     if (!q) return 1;
     const label = labelOf(cmd).toLowerCase();
-    if (label.startsWith(q)) return 6;
+    const words = label.split(/[^a-z0-9]+/).filter(Boolean);
+    const keys = (cmd.keywords || '').toLowerCase().split(/\s+/).filter(Boolean);
+    if (label.startsWith(q)) return 7;
+    if (words.some((w) => w.startsWith(q))) return 6;
     if (label.includes(q)) return 5;
+    if (keys.some((k) => k.startsWith(q))) return 4.5;
+    // initials / word-start subsequence: "gh" → GitHub, "ce" → copy email
     let i = 0;
-    for (const ch of label) if (ch === q[i]) i++;
-    if (i === q.length) return 4;
-    if ((cmd.keywords || '').toLowerCase().includes(q)) return 2;
+    for (const w of words) for (const ch of w) { if (ch === q[i]) i++; else break; }
+    if (i === q.length) return 3;
+    if (keys.some((k) => k.includes(q))) return 2;
     return 0;
   };
 
