@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" shape-rendering="crispEdges">
+  <style>
+    rect { fill: #111110; }
+    .a { fill: #ff4f1a; }
+    @media (prefers-color-scheme: dark) { rect { fill: #f2f1ec; } .a { fill: #ff6a3d; } }
+  </style>
+  <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+  <rect x="12.5" y="3" width="7" height="7" rx="1.5"/>
+  <rect x="22" y="3" width="7" height="7" rx="1.5" class="a"/>
+  <rect x="3" y="12.5" width="7" height="7" rx="1.5"/>
+  <rect x="12.5" y="12.5" width="7" height="7" rx="1.5" class="a"/>
+  <rect x="3" y="22" width="7" height="7" rx="1.5"/>
+  <rect x="22" y="22" width="7" height="7" rx="1.5"/>
+</svg>

@@ -1,44 +1,491 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ralston Raphael</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Ralston Raphael — AI Solutions Architect</title>
+  <meta name="description" content="Ralston Raphael builds production AI agents that turn week-long workflows into minutes. Solutions Architect at Datagrid; Computer Science & Applied Math at Trinity College." />
+  <meta name="theme-color" content="#f6f5f1" />
+  <meta name="color-scheme" content="light dark" />
+  <meta property="og:title" content="Ralston Raphael — AI Solutions Architect" />
+  <meta property="og:description" content="Production AI agents that turn week-long workflows into minutes." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preload" href="assets/fonts/Geist-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="assets/fonts/GeistMono-Variable.woff2" as="font" type="font/woff2" crossorigin />
+  <script>
+    // apply saved theme before first paint (no flash)
+    try { if (localStorage.getItem('rr:theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (e) {}
+  </script>
+  <link rel="stylesheet" href="assets/css/site.css" />
+  <script type="module" src="assets/js/main.js"></script>
 </head>
 <body>
-  <header>
-    <h1>Ralston Raphael</h1>
-    <p class="tagline">Student &amp; developer</p>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="scroll-progress" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- ============ NAV ============ -->
+  <header class="nav" role="banner">
+    <div class="nav-inner glass">
+      <a class="nav-brand" href="#top" aria-label="Ralston Raphael — back to top">
+        <span class="nav-mark" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+        <span class="nav-name mono">ralston<span class="dim">.raphael</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Sections">
+        <span class="nav-pill" aria-hidden="true"></span>
+        <ul>
+          <li><a href="#about" data-scramble>about</a></li>
+          <li><a href="#work" data-scramble>work</a></li>
+          <li><a href="#projects" data-scramble>projects</a></li>
+          <li><a href="#contact" data-scramble>contact</a></li>
+        </ul>
+      </nav>
+      <div class="nav-tools">
+        <button class="icon-btn" type="button" data-sound aria-pressed="false" aria-label="Turn on interface sounds" title="Interface sounds">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path class="i-speaker" d="M2 6h3l4-3v10L5 10H2z"/><path class="i-wave" d="M11 5.5c1 .8 1.5 1.6 1.5 2.5s-.5 1.7-1.5 2.5M12.8 3.8C14.2 5 15 6.4 15 8s-.8 3-2.2 4.2"/><path class="i-mute" d="M11 6l4 4M15 6l-4 4"/></svg>
+        </button>
+        <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode" title="Theme (T)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.25"/><path d="M8 2.75v10.5a5.25 5.25 0 0 0 0-10.5z" class="fill"/></svg>
+        </button>
+        <button class="cmdk-trigger mono" type="button" data-cmdk aria-label="Open command menu" aria-keyshortcuts="Meta+K Control+K">
+          <kbd>⌘</kbd><kbd>K</kbd>
+        </button>
+      </div>
+    </div>
   </header>
 
-  <nav>
-    <a href="#about">About</a>
-    <a href="#projects">Projects</a>
-    <a href="#contact">Contact</a>
-  </nav>
+  <main id="main">
+    <!-- ============ HERO (stage = hero + impact over one live field) ============ -->
+    <div class="stage" id="top">
+    <canvas id="field" class="hero-field" aria-hidden="true"></canvas>
+    <section class="hero" aria-labelledby="hero-name">
 
-  <main>
-    <section id="about">
-      <h2>About</h2>
-      <p>Welcome to my personal website. This is a work in progress — more coming soon.</p>
+      <div class="container hero-inner">
+        <aside class="agent-log glass mono enter" style="--d:3" aria-label="Agent runs and the time they save">
+          <div class="log-head">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="log-file">agents.log</span>
+            <span class="log-live"><span class="status-dot" aria-hidden="true"></span>live</span>
+          </div>
+          <ol class="log-lines" data-log>
+            <li><span class="log-name">construction.workflow</span><span class="log-ok">✓ 8m</span><span class="log-was">was 1 week</span></li>
+            <li><span class="log-name">playlist.tracking</span><span class="log-ok">✓ 8m</span><span class="log-was">was 14 days</span></li>
+            <li><span class="log-name">flash.report</span><span class="log-ok">✓ 15m</span><span class="log-was">was 8 hours</span></li>
+            <li><span class="log-name">field.sms.answer</span><span class="log-ok">✓ secs</span><span class="log-was">was hours</span></li>
+            <li><span class="log-name">call.to.prompt</span><span class="log-ok">✓ 2m</span><span class="log-was">was 45 min</span></li>
+          </ol>
+          <div class="log-foot"><span>$ tail -f</span><span>13 in production</span></div>
+        </aside>
+        <p class="eyebrow mono enter" style="--d:0">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span data-decode>shipping agents @ datagrid</span>
+        </p>
+        <h1 id="hero-name" class="hero-name enter" style="--d:1">
+          <span class="line"><span>Ralston</span></span>
+          <span class="line"><span>Raphael<span class="caret" aria-hidden="true"></span></span></span>
+        </h1>
+        <div class="hero-bottom">
+          <p class="hero-lede enter" style="--d:2">
+            I build AI agents that turn week-long workflows into <em>eight-minute runs</em> — for construction crews, music labels, and strategy teams.
+          </p>
+          <p class="print-only print-contact mono">ralstone2005@gmail.com · linkedin.com/in/ralston-raphael · github.com/ralstonraphael</p>
+          <div class="hero-actions enter" style="--d:3">
+            <a class="btn btn-primary" href="#work" data-magnetic>
+              <span>See my work</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg>
+            </a>
+            <button class="btn btn-glass" type="button" data-copy-email data-magnetic>
+              <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.8C3 3.4 3.4 3 3.8 3h6.7"/></svg>
+              <span>Copy email</span>
+            </button>
+            <button class="btn btn-ghost" type="button" data-print>
+              <span>Résumé</span><kbd class="mono">PDF</kbd>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-meta mono enter" style="--d:4">
+        <dl class="meta-grid">
+          <div><dt>based</dt><dd>Palo Alto, CA <span class="dim">↔</span> Hartford, CT</dd></div>
+          <div><dt>local</dt><dd><span data-clock="America/Los_Angeles" data-seconds="1">--:--:--</span> <span class="dim">PT</span> · <span data-clock="America/New_York">--:--</span> <span class="dim">ET</span></dd></div>
+          <div><dt>studying</dt><dd>CS + Applied Math, Trinity ’27</dd></div>
+          <div class="telemetry" aria-hidden="true">
+            <dt>field <span class="hint">move · click</span></dt>
+            <dd>
+              <span>x <b data-readout="x">---</b></span>
+              <span>y <b data-readout="y">---</b></span>
+              <span>heat <b data-readout="temp">0.00</b></span>
+              <span class="meter"><i data-readout="bar"></i></span>
+            </dd>
+          </div>
+        </dl>
+      </div>
     </section>
 
-    <section id="projects">
-      <h2>Projects</h2>
-      <ul>
-        <li>Project one — description coming soon.</li>
+    <!-- ============ IMPACT ============ -->
+    <section class="container impact" aria-label="Impact in numbers" data-reveal>
+      <ul class="impact-grid" data-stagger>
+        <li class="stat glass" data-spotlight>
+          <p class="stat-num"><span data-count="13">13</span></p>
+          <p class="stat-label">production AI agents shipped at <b>Datagrid</b></p>
+        </li>
+        <li class="stat glass" data-spotlight>
+          <p class="stat-num"><span data-count="6000">6,000</span><span class="unit">+</span></p>
+          <p class="stat-label">employees served across client companies</p>
+        </li>
+        <li class="stat glass" data-spotlight>
+          <p class="stat-num">14<span class="unit">d</span><span class="arrow">→</span>8<span class="unit">m</span></p>
+          <p class="stat-label">A&amp;R workflow at <b>Universal Music</b>, automated</p>
+        </li>
+        <li class="stat glass" data-spotlight>
+          <p class="stat-num"><span data-count="40">40</span><span class="unit">×</span></p>
+          <p class="stat-label">faster document review with RAG at <b>Norstella</b></p>
+        </li>
       </ul>
     </section>
+    </div>
 
-    <section id="contact">
-      <h2>Contact</h2>
-      <p>Email: <a href="mailto:ralstone2005@gmail.com">ralstone2005@gmail.com</a></p>
+    <!-- ============ ABOUT ============ -->
+    <section id="about" class="container section" aria-labelledby="about-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">01</span>
+        <h2 id="about-h" class="section-title">About</h2>
+        <span class="section-aside mono">who I am</span>
+      </header>
+      <div class="about-grid">
+        <div class="prose" data-stagger>
+          <p class="lead">I’m a Computer Science and Applied Math student at Trinity College who ships production AI.</p>
+          <p>At <b>Datagrid</b> I started as an intern and became the youngest hire in the company’s history. Today I architect agents that construction crews text from the field, and that do in minutes what used to take a week — driving customer adoption to 62% in the first 30 days.</p>
+          <p>My method is unglamorous: sit with the people doing the work, find the step that eats their day, and build the thing that makes it disappear — with guardrails, reliability metrics, and a hand-off doc so it keeps working after I leave the room.</p>
+          <p>I grew up on tech reviews and unboxing videos, which left me with a permanent obsession with why some products feel effortless. Off the clock I’m experimenting in the kitchen, working through a puzzle, or leading Trinity’s Computer Science Club.</p>
+        </div>
+        <figure class="code-card glass" aria-label="A summary of Ralston written as a TypeScript object">
+          <div class="code-chrome">
+            <span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span class="code-file mono">ralston.config.ts</span>
+            <span class="code-lang mono">ts</span>
+          </div>
+<pre class="code mono" data-typeset><code><span class="l"><span class="c">// the short version</span></span><span class="l"><span class="k">export const</span> <span class="v">ralston</span> = {</span><span class="l">  <span class="p">role</span>: <span class="s">"Solutions Architect, Agentic AI"</span>,</span><span class="l">  <span class="p">at</span>: <span class="s">"Datagrid"</span>,</span><span class="l">  <span class="p">studying</span>: [<span class="s">"Computer Science"</span>, <span class="s">"Applied Math"</span>],</span><span class="l">  <span class="p">school</span>: <span class="s">"Trinity College ’27"</span>,</span><span class="l">  <span class="p">stack</span>: [<span class="s">"python"</span>, <span class="s">"langchain"</span>, <span class="s">"rag"</span>, <span class="s">"sql"</span>],</span><span class="l">  <span class="p">offline</span>: [<span class="s">"kitchen experiments"</span>, <span class="s">"puzzles"</span>],</span><span class="l">  <span class="p">ships</span>: <span class="n">true</span>,</span><span class="l">  <span class="p">complacent</span>: <span class="n">false</span>,</span><span class="l">} <span class="k">as const</span>;<span class="caret" aria-hidden="true"></span></span></code></pre>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ============ EXPERIENCE ============ -->
+    <section id="work" class="container section" aria-labelledby="work-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">02</span>
+        <h2 id="work-h" class="section-title">Experience</h2>
+        <span class="section-aside mono">5 roles · 2024 — now</span>
+      </header>
+
+      <ol class="xp-list" data-stagger>
+        <li>
+          <details class="xp-item" data-spotlight open>
+            <summary>
+              <span class="xp-period mono">2025 — now</span>
+              <span class="xp-main">
+                <span class="xp-co">Datagrid AI</span>
+                <span class="xp-role">Solutions Architect, Agentic AI</span>
+              </span>
+              <span class="xp-tag mono">agentic ai</span>
+              <span class="xp-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="xp-body">
+              <ul class="xp-points">
+                <li>Deployed SMS-accessible AI agents for field teams on <b>$200M+</b> construction projects — real-time answers in seconds instead of hours, supporting six-figure enterprise deals.</li>
+                <li>Built <b>13 agents</b> that automate complex construction workflows, compressing week-long processes into <b>8-minute runs</b> for 6,000+ employees across client companies.</li>
+                <li>Own workflows end-to-end — reliability instrumentation, guardrails, customer hand-off — and drove adoption to <b>62% in 30 days</b>. Joined as an intern; youngest hire in company history.</li>
+              </ul>
+              <ul class="chips mono" aria-label="Tools">
+                <li>llm agents</li><li>rag</li><li>prompt design</li><li>webhooks</li><li>sms</li>
+              </ul>
+            </div>
+          </details>
+        </li>
+        <li>
+          <details class="xp-item" data-spotlight>
+            <summary>
+              <span class="xp-period mono">2025</span>
+              <span class="xp-main">
+                <span class="xp-co">Universal Music Group</span>
+                <span class="xp-role">Global Research &amp; Analytics Intern</span>
+              </span>
+              <span class="xp-tag mono">music</span>
+              <span class="xp-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="xp-body">
+              <ul class="xp-points">
+                <li>Built Apple Music and Spotify analytics tools that automate playlist tracking and market-share analysis across <b>5,000+ playlists</b> and <b>100,000+ tracks</b>.</li>
+                <li>Cut A&amp;R’s <b>14-day</b> research workflow to <b>8 minutes</b>.</li>
+                <li>Ran SQL-driven market research and audience analytics supporting strategy across international labels.</li>
+              </ul>
+              <ul class="chips mono" aria-label="Tools">
+                <li>python</li><li>sql</li><li>apis</li><li>analytics</li>
+              </ul>
+            </div>
+          </details>
+        </li>
+        <li>
+          <details class="xp-item" data-spotlight>
+            <summary>
+              <span class="xp-period mono">2025</span>
+              <span class="xp-main">
+                <span class="xp-co">Norstella</span>
+                <span class="xp-role">Strategy Intern</span>
+              </span>
+              <span class="xp-tag mono">life-sci data</span>
+              <span class="xp-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="xp-body">
+              <ul class="xp-points">
+                <li>Built an enterprise retrieval-augmented generation system that analyzes <b>500+ pages in 2 minutes</b> — 40× faster than manual review.</li>
+                <li>Cut flash-report generation from <b>8 hours to 15 minutes</b>; the tool was fully adopted by the strategy team (see <a href="#projects">Flash Report AI</a>).</li>
+              </ul>
+              <ul class="chips mono" aria-label="Tools">
+                <li>langchain</li><li>pinecone</li><li>gpt-4</li><li>docling</li>
+              </ul>
+            </div>
+          </details>
+        </li>
+        <li>
+          <details class="xp-item" data-spotlight>
+            <summary>
+              <span class="xp-period mono">2025</span>
+              <span class="xp-main">
+                <span class="xp-co">SoFi</span>
+                <span class="xp-role">Extern</span>
+              </span>
+              <span class="xp-tag mono">fintech</span>
+              <span class="xp-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="xp-body">
+              <ul class="xp-points">
+                <li>Competed in a company-wide case competition on fintech challenges in financial education, presenting strategic recommendations to senior stakeholders.</li>
+              </ul>
+            </div>
+          </details>
+        </li>
+        <li>
+          <details class="xp-item" data-spotlight>
+            <summary>
+              <span class="xp-period mono">2024</span>
+              <span class="xp-main">
+                <span class="xp-co">Longitude Capital</span>
+                <span class="xp-role">Venture Capital Analyst Intern</span>
+              </span>
+              <span class="xp-tag mono">venture</span>
+              <span class="xp-toggle" aria-hidden="true"></span>
+            </summary>
+            <div class="xp-body">
+              <ul class="xp-points">
+                <li>Built three-statement and DCF models in Capital IQ and Excel to evaluate the revenue potential, risks, and outlook of medtech company CVRx.</li>
+                <li>Presented a data-driven thesis recommending against investment; the analysis aligned with partner perspectives and informed capital allocation.</li>
+              </ul>
+              <ul class="chips mono" aria-label="Tools">
+                <li>capital iq</li><li>excel</li><li>dcf</li>
+              </ul>
+            </div>
+          </details>
+        </li>
+      </ol>
+    </section>
+
+    <!-- ============ PROJECTS ============ -->
+    <section id="projects" class="container section" aria-labelledby="proj-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">03</span>
+        <h2 id="proj-h" class="section-title">Projects</h2>
+        <span class="section-aside mono">messy in → structured out</span>
+      </header>
+
+      <div class="proj-grid" data-stagger>
+        <article class="proj glass" data-pixel-host data-spotlight>
+          <canvas class="proj-pixels" data-kind="doc" data-seed="11" aria-hidden="true"></canvas>
+          <div class="proj-body">
+            <header class="proj-head">
+              <h3 class="proj-title">Flash Report AI</h3>
+              <span class="proj-year mono">2025</span>
+            </header>
+            <p>Competitor documents in, executive flash report out. RAG over files up to 200MB with dynamic retrieval, Docling chunking and OpenAI embeddings — 98% relevance across 10,000+ chunks at 60% lower token cost.</p>
+            <ul class="chips mono" aria-label="Stack"><li>python</li><li>langchain</li><li>pinecone</li><li>gpt-4</li><li>streamlit</li></ul>
+            <a class="proj-link mono" href="https://github.com/ralstonraphael/ai-flash-report" target="_blank" rel="noopener">
+              <span>view source</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="proj glass" data-pixel-host data-spotlight>
+          <canvas class="proj-pixels" data-kind="web" data-seed="23" aria-hidden="true"></canvas>
+          <div class="proj-body">
+            <header class="proj-head">
+              <h3 class="proj-title">Stone Scraper</h3>
+              <span class="proj-year mono">2025</span>
+            </header>
+            <p>Point it at a website and ask for what you need. A Selenium + BeautifulSoup pipeline turns raw HTML into clean records, then a local LLM parses them — up to 90% less manual extraction.</p>
+            <ul class="chips mono" aria-label="Stack"><li>python</li><li>selenium</li><li>bs4</li><li>ollama</li><li>langchain</li></ul>
+            <a class="proj-link mono" href="https://github.com/ralstonraphael/Stone_Scraper" target="_blank" rel="noopener">
+              <span>view source</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+            </a>
+          </div>
+        </article>
+
+        <article class="proj glass" data-pixel-host data-spotlight tabindex="0">
+          <canvas class="proj-pixels" data-kind="wave" data-seed="5" aria-hidden="true"></canvas>
+          <div class="proj-body">
+            <header class="proj-head">
+              <h3 class="proj-title">Call → Agent</h3>
+              <span class="proj-year mono">2025</span>
+            </header>
+            <p>When a client call ends, a webhook pulls the transcript, an LLM extracts decisions, blockers and required fields, and a context-aware agent prompt lands in Slack with a one-click run. Prep went from ~45 minutes to ~2.</p>
+            <ul class="chips mono" aria-label="Stack"><li>webhooks</li><li>llm extraction</li><li>slack</li><li>datagrid</li></ul>
+            <span class="proj-link mono is-static">internal tool · datagrid</span>
+          </div>
+        </article>
+
+        <article class="proj glass" data-pixel-host data-spotlight tabindex="0">
+          <canvas class="proj-pixels" data-kind="ticket" data-seed="42" aria-hidden="true"></canvas>
+          <div class="proj-body">
+            <header class="proj-head">
+              <h3 class="proj-title">Haul Ticket Agent</h3>
+              <span class="proj-year mono">2025</span>
+            </header>
+            <p>Handwritten trucking tickets in, clean spreadsheet rows out. Vision extraction with strict rules — date normalization, multi-cost-code splitting, upserts keyed on ticket + cost code — replaced a four-hour daily data-entry shift.</p>
+            <ul class="chips mono" aria-label="Stack"><li>ocr</li><li>vision llm</li><li>sheets</li><li>sharepoint</li></ul>
+            <span class="proj-link mono is-static">client deployment · datagrid</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============ ACTIVITY ============ -->
+    <section id="activity" class="container section" aria-labelledby="act-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">04</span>
+        <h2 id="act-h" class="section-title">Activity</h2>
+        <span class="section-aside mono">live</span>
+      </header>
+
+      <div class="heat-card glass" data-heatmap data-mode="github">
+        <div class="heat-top">
+          <p class="heat-summary" data-heat-summary aria-live="polite">Loading contributions…</p>
+          <div class="segmented mono" role="group" aria-label="Heatmap source">
+            <span class="segmented-pill" aria-hidden="true"></span>
+            <button type="button" data-heat-mode="github" aria-pressed="true">github</button>
+            <button type="button" data-heat-mode="you" aria-pressed="false">this visit</button>
+          </div>
+        </div>
+        <div class="heat-canvas-wrap">
+          <canvas class="heat-canvas" aria-hidden="true"></canvas>
+          <div class="heat-tip glass mono" data-heat-tip aria-hidden="true"><b></b><span></span></div>
+        </div>
+        <div class="heat-foot mono">
+          <span class="heat-note" data-heat-note></span>
+          <span class="heat-legend" aria-hidden="true">less <i style="--l:0"></i><i style="--l:1"></i><i style="--l:2"></i><i style="--l:3"></i><i style="--l:4"></i> more</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ EDUCATION ============ -->
+    <section id="education" class="container section" aria-labelledby="edu-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">05</span>
+        <h2 id="edu-h" class="section-title">Education &amp; recognition</h2>
+        <span class="section-aside mono">hartford, ct</span>
+      </header>
+
+      <div class="edu-grid" data-stagger>
+        <div class="edu-row">
+          <span class="xp-period mono">2023 — ’27</span>
+          <div>
+            <h3 class="edu-title">Trinity College</h3>
+            <p class="edu-sub">B.S. Computer Science &amp; Applied Mathematics</p>
+            <ul class="chips mono" aria-label="Relevant coursework">
+              <li>data structures &amp; algorithms</li><li>artificial intelligence</li><li>software design</li><li>cloud native apps</li><li>probability</li><li>linear algebra</li><li>statistics</li><li>data visualization</li><li>engineering entrepreneurship</li>
+            </ul>
+          </div>
+        </div>
+        <div class="edu-row">
+          <span class="xp-period mono">2025</span>
+          <div>
+            <h3 class="edu-title">Kathryn George Tyree Innovation Fellow Award</h3>
+            <p class="edu-sub">Presented at Trinity’s Honors Day to an outstanding second-year student for innovation, creativity, problem-solving and entrepreneurial leadership. <a class="inline-link" href="https://www.trincoll.edu/news/honors-day-celebrates-academic-success-community-involvement-of-trinity-students/" target="_blank" rel="noopener">Read more</a></p>
+          </div>
+        </div>
+        <div class="edu-row">
+          <span class="xp-period mono">now</span>
+          <div>
+            <h3 class="edu-title">President, Trinity College Computer Science Club</h3>
+            <p class="edu-sub">Secured a partnership with the Entrepreneurship Center and organized the club’s first hackathon for 60+ participants.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="skills" data-stagger>
+        <div class="skill-col">
+          <h3 class="skill-h mono">languages</h3>
+          <p>Python · Java · JavaScript · SQL · HTML/CSS</p>
+        </div>
+        <div class="skill-col">
+          <h3 class="skill-h mono">ai / ml</h3>
+          <p>LangChain · OpenAI API · RAG · Pinecone · Chroma · Docling · PyTorch · TensorFlow · scikit-learn</p>
+        </div>
+        <div class="skill-col">
+          <h3 class="skill-h mono">data</h3>
+          <p>Pandas · NumPy · MySQL · Tableau · Power BI · Excel</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTACT ============ -->
+    <section id="contact" class="container section contact" aria-labelledby="contact-h" data-reveal>
+      <header class="section-head">
+        <span class="section-idx mono">06</span>
+        <h2 class="section-title visually-hidden-mobile">Contact</h2>
+        <span class="section-aside mono">reply within a day</span>
+      </header>
+      <p id="contact-h" class="contact-line">Have a workflow that eats a week?<br /><span class="dim">Let’s make it eight minutes.</span></p>
+      <div class="contact-actions">
+        <button class="btn btn-primary btn-lg" type="button" data-copy-email data-magnetic>
+          <span class="mono">ralstone2005@gmail.com</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.8C3 3.4 3.4 3 3.8 3h6.7"/></svg>
+        </button>
+        <a class="btn btn-glass btn-lg" href="https://www.linkedin.com/in/ralston-raphael/" target="_blank" rel="noopener" data-magnetic>
+          <span>LinkedIn</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+        </a>
+        <a class="btn btn-glass btn-lg" href="https://github.com/ralstonraphael" target="_blank" rel="noopener" data-magnetic>
+          <span>GitHub</span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 11 11 5M6 5h5v5"/></svg>
+        </a>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <p>&copy; 2026 Ralston Raphael</p>
+  <!-- ============ FOOTER / STATUS BAR ============ -->
+  <footer class="status-bar mono">
+    <div class="container status-inner">
+      <span><span class="status-dot" aria-hidden="true"></span> © 2026 Ralston Raphael</span>
+      <span class="hide-sm">hand-built · vanilla js · no frameworks</span>
+      <span class="hide-sm">updated <span data-updated>2026-09-28</span></span>
+      <button class="status-cmd" type="button" data-cmdk>press <kbd>⌘</kbd><kbd>K</kbd></button>
+    </div>
   </footer>
+
+  <!-- ============ COMMAND PALETTE ============ -->
+  <dialog id="cmdk" class="cmdk" aria-label="Command menu">
+    <div class="cmdk-panel glass">
+      <div class="cmdk-search">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg>
+        <input class="mono" type="text" placeholder="Type a command or search…" aria-label="Search commands" role="combobox" aria-expanded="true" aria-controls="cmdk-list" autocomplete="off" spellcheck="false" />
+        <kbd class="mono">esc</kbd>
+      </div>
+      <ul id="cmdk-list" class="cmdk-list" role="listbox" aria-label="Commands"></ul>
+      <div class="cmdk-foot mono"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> run</span><span class="hide-sm">tip: press <kbd>/</kbd> anywhere</span></div>
+    </div>
+  </dialog>
+
+  <div id="toast" class="toast glass mono" role="status" aria-live="polite">
+    <span class="toast-dot" aria-hidden="true"></span><span data-toast-msg></span>
+  </div>
 </body>
 </html>
