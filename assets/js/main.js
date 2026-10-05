@@ -86,7 +86,7 @@ themeBtn?.setAttribute('aria-pressed', String(root.dataset.theme === 'dark'));
 themeBtn?.addEventListener('click', toggleTheme);
 
 /* ---------- thermal fields ---------- */
-let heroField = null, contactField = null;
+let heroField = null;
 safe('field', () => {
   const readout = { x: $('[data-readout="x"]'), y: $('[data-readout="y"]'), t: $('[data-readout="temp"]'), bar: $('[data-readout="bar"]') };
   const field = initField($('#field'), {
@@ -107,23 +107,14 @@ safe('field', () => {
   repaints.push(field.repaint);
   heroField = field;
 });
-safe('field-contact', () => {
-  const c = $('#field-contact');
-  if (!c) return;
-  const field = initField(c, { host: $('#contact'), preset: 'calm', avoid: '.section-aside, .contact-line, .contact-actions' });
-  repaints.push(field.repaint);
-  contactField = field;
-});
 
 /* ---------- scroll choreography: the hero cools and drifts as you leave it,
-   the contact field warms back up as you arrive (hot → cool → hot) ---------- */
+   ---------- */
 safe('scroll-fx', () => {
-  const stage = $('#top'), contact = $('#contact');
-  let H = 1, cTop = 0, cEnd = 1, lastExit = -1;
+  const stage = $('#top');
+  let H = 1, lastExit = -1;
   const measure = () => {
     H = stage?.offsetHeight || innerHeight;
-    cTop = contact ? contact.getBoundingClientRect().top + scrollY : 0;
-    cEnd = Math.min(cTop - innerHeight * 0.35, document.documentElement.scrollHeight - innerHeight);
   };
   new ResizeObserver(measure).observe(document.body);
   measure();
@@ -134,7 +125,6 @@ safe('scroll-fx', () => {
       const e = reduce || !motion.on ? 0 : Math.round(p * 1000) / 1000;
       if (e !== lastExit) { lastExit = e; stage.style.setProperty('--exit', e); }
     } else if (lastExit !== 1 && !reduce && motion.on) { lastExit = 1; stage.style.setProperty('--exit', 1); }
-    if (contactField && y + innerHeight > cTop - 200) contactField.setCool(1 - progress(y, cTop - innerHeight, cEnd));
   });
   motion.subscribe((on) => { if (!on) { lastExit = 0; stage.style.setProperty('--exit', 0); } });
 });
@@ -427,7 +417,6 @@ safe('palette', () => {
     { group: 'Navigate', label: 'Activity heatmap', icon: '§', keywords: 'github contributions attention', run: go('#activity') },
     { group: 'Navigate', label: 'Education', icon: '§', keywords: 'trinity school college', run: go('#education') },
     { group: 'Navigate', label: 'Off hours', icon: '§', keywords: 'interests roblox music drake coachella mochakk bieber', run: go('#interests') },
-    { group: 'Navigate', label: 'Contact', icon: '§', hint: 'C', run: go('#contact') },
     { group: 'Experience', label: 'Gumloop: Founding FDE', icon: '→', keywords: 'forward deployed agentic engineer automation', run: go('#xp-gumloop', true) },
     { group: 'Experience', label: 'Ramp: AI Product', icon: '→', keywords: 'glass internal ai', run: go('#xp-ramp', true) },
     { group: 'Experience', label: 'Datagrid → Procore', icon: '→', keywords: 'forward deployed engineer solutions architect agents', run: go('#xp-datagrid', true) },
@@ -449,7 +438,7 @@ safe('palette', () => {
   $$('[data-cmdk]').forEach((b) => b.addEventListener('click', (e) => palette.open(e.detail === 0)));
 });
 
-const keymap = { a: '#about', e: '#work', p: '#projects', c: '#contact' };
+const keymap = { a: '#about', e: '#work', p: '#projects' };
 document.addEventListener('keydown', (e) => {
   if (!keysOn || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey || e.repeat) return;
   if (/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) || $('#cmdk')?.open) return;

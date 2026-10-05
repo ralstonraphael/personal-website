@@ -15,7 +15,7 @@ const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const SECTIONS = [
   ['top', 'intro', 'top'], ['about', 'about', 'abt'], ['work', 'experience', 'exp'], ['projects', 'projects', 'proj'],
-  ['activity', 'this card', 'you'], ['education', 'education', 'edu'], ['contact', 'contact', 'hi'],
+  ['activity', 'this card', 'you'], ['education', 'education', 'edu'], ['interests', 'off hours', 'fun'],
 ];
 const TICK = 250; // ms per attention sample
 const MIN_SPAN = 240; // samples the timeline covers before it starts compressing (60s)

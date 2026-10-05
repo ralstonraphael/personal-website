@@ -1297,3 +1297,8 @@ kbd {
 }
 @media (max-width: 520px) { .int-pipe li + li::before { display: none; } }
 @media print { #interests { display: none !important; } }
+
+.status-links { display: inline-flex; gap: 16px; }
+.status-links a { color: var(--muted); transition: color 0.2s; }
+@media (hover: hover) { .status-links a:hover { color: var(--ink); } }
+#interests { padding-bottom: clamp(72px, 9vw, 120px); }
