@@ -489,21 +489,10 @@ html:not(.js) [data-js] { display: none !important; }
 }
 .nav-brand { display: inline-flex; align-items: center; gap: 10px; justify-self: start; min-height: 44px; }
 .nav-name { font-size: 13px; font-weight: 500; }
-.nav-mark { display: grid; grid-template-columns: repeat(3, 4px); gap: 1.5px; }
-.nav-mark i { width: 4px; height: 4px; border-radius: 1px; transition: transform 0.35s var(--ease-out); }
-.nav-mark i:nth-child(1) { background: var(--th-2); }
-.nav-mark i:nth-child(2) { background: var(--th-3); }
-.nav-mark i:nth-child(3) { background: var(--th-4); }
-.nav-mark i:nth-child(4) { background: var(--th-3); }
-.nav-mark i:nth-child(5) { background: var(--th-5); }
-.nav-mark i:nth-child(6) { background: var(--th-6); }
-.nav-mark i:nth-child(7) { background: var(--th-5); }
-.nav-mark i:nth-child(8) { background: var(--th-7); }
-.nav-mark i:nth-child(9) { background: var(--th-8); }
-@media (hover: hover) {
-  .nav-brand:hover .nav-mark i:nth-child(odd) { transform: translateY(-1.5px); }
-  .nav-brand:hover .nav-mark i:nth-child(even) { transform: translateY(1.5px); }
-}
+.nav-mark { position: relative; display: block; flex: none; width: 24px; height: 25px; color: var(--ink); font-family: var(--font-mono); line-height: 1; }
+.nav-mark span { position: absolute; top: 2px; left: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.1em; }
+.nav-mark sup { position: absolute; top: 0; right: 0; color: var(--accent-ink); font-size: 10px; font-weight: 700; }
+.nav-mark::after { content: ""; position: absolute; bottom: 0; left: 1px; width: 20px; height: 2px; border-radius: 2px; background: var(--grad-thermal); }
 
 .nav-links { position: relative; }
 .nav-links ul { display: flex; gap: 2px; }
