@@ -33,7 +33,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
   const ctx = canvas.getContext('2d', { alpha: true });
   const reduce = prefersReducedMotion();
 
-  let W = 0, H = 0, dpr = 1, gap = 22, cols = 0, rows = 0, N = 0, maxS = 20;
+  let W = 0, H = 0, dpr = 1, gap = 16, cols = 0, rows = 0, N = 0, maxS = 10;
   let heat, amb, damp, ox, oy, vx, vy, bucket, order;
   const counts = new Int32Array(LEVELS);
   const starts = new Int32Array(LEVELS);
@@ -89,8 +89,8 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
     canvas.width = Math.round(W * dpr);
     canvas.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    gap = W < 640 ? 18 : 22;
-    maxS = gap - 7;
+    gap = W < 640 ? 14 : 16;
+    maxS = gap - 6;
     if (preset === 'hero') plumes = W < 900 ? PRESETS.heroNarrow : PRESETS.hero;
     cols = Math.ceil(W / gap) + 1;
     rows = Math.ceil(H / gap) + 1;
@@ -195,7 +195,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
       x: (p.x + Math.sin(t * p.fx + p.x * 9) * p.ax) * W,
       y: (p.y + Math.cos(t * p.fy + p.y * 7) * p.ay) * H,
       k: 1 / (2 * (p.r * S) ** 2),
-      a: p.a * (0.9 + 0.1 * Math.sin(t * 0.5 + p.x * 5)),
+      a: p.a * 0.68 * (0.9 + 0.1 * Math.sin(t * 0.5 + p.x * 5)),
     }));
     for (let r = 0, i = 0; r < rows; r++) {
       const y = r * gap;
@@ -226,7 +226,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
         const energy = Math.min(1, 0.05 + pointer.speed / 40);
         for (let s = 1; s <= steps; s++) {
           const k = s / steps;
-          stir(pointer.px + dx * k, pointer.py + dy * k, 120, (0.1 * energy) / steps * 4, (0.9 * energy) / steps * 2);
+          stir(pointer.px + dx * k, pointer.py + dy * k, 105, (0.07 * energy) / steps * 4, (0.9 * energy) / steps * 2);
         }
       }
       pointer.px = pointer.x; pointer.py = pointer.y;
@@ -249,7 +249,7 @@ export function initField(canvas, { host = canvas.parentElement, preset = 'hero'
           const d = Math.hypot(dx, dy) || 1;
           if (d < inner || d > outer) continue;
           const f = (1 - Math.abs(d - rp.r) / band) * rp.life;
-          heat[i] = Math.min(1, heat[i] + 0.12 * f * dt);
+          heat[i] = Math.min(1, heat[i] + 0.08 * f * dt);
           if (!reduce) { vx[i] += (dx / d) * 0.55 * f * dt; vy[i] += (dy / d) * 0.55 * f * dt; }
         }
       }

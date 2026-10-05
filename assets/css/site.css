@@ -69,7 +69,7 @@
   --pixel-off: rgba(17, 17, 16, 0.055);
   --field-dot: #111110;
   --field-dot-alpha: 0.17;
-  --field-max-alpha: 1;
+  --field-max-alpha: 0.78;
   --field-text-floor: 0.1;
   --paper-dot: rgba(17, 17, 16, 0.075);
 
@@ -147,7 +147,7 @@
   --pixel-off: rgba(242, 241, 236, 0.05);
   --field-dot: #f2f1ec;
   --field-dot-alpha: 0.14;
-  --field-max-alpha: 0.82;
+  --field-max-alpha: 0.64;
   --field-text-floor: 0.05;
   --paper-dot: rgba(242, 241, 236, 0.06);
 
