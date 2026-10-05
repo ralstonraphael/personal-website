@@ -339,6 +339,7 @@ html:not(.js) [data-js] { display: none !important; }
 .logo[data-logo="umg"] { --src: url("../logos/umg-wordmark.svg"); --ar: 2.09; --lh: 34px; }
 .logo[data-logo="sofi"] { --src: url("../logos/sofi-wordmark.svg"); --ar: 3.66; --lh: 17px; }
 .logo[data-logo="biodesign"] { --src: url("../logos/biodesign-wordmark.png"); --ar: 6.44; --lh: 14px; }
+.logo[data-logo="gumloop-mark"] { --src: url("../logos/gumloop-mark.svg"); }
 .logo[data-logo="ramp-mark"] { --src: url("../logos/ramp-mark.svg"); }
 .logo[data-logo="datagrid-mark"] { --src: url("../logos/datagrid-mark.png"); }
 .logo[data-logo="republic-mark"] { --src: url("../logos/republic-records.svg"); }
