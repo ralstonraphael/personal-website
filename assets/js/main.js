@@ -428,6 +428,7 @@ safe('palette', () => {
     { group: 'Navigate', label: 'Education', icon: '§', keywords: 'trinity school college', run: go('#education') },
     { group: 'Navigate', label: 'Off hours', icon: '§', keywords: 'interests roblox music drake coachella mochakk bieber', run: go('#interests') },
     { group: 'Navigate', label: 'Contact', icon: '§', hint: 'C', run: go('#contact') },
+    { group: 'Experience', label: 'Gumloop: Founding FDE', icon: '→', keywords: 'forward deployed agentic engineer automation', run: go('#xp-gumloop', true) },
     { group: 'Experience', label: 'Ramp: AI Product', icon: '→', keywords: 'glass internal ai', run: go('#xp-ramp', true) },
     { group: 'Experience', label: 'Datagrid → Procore', icon: '→', keywords: 'forward deployed engineer solutions architect agents', run: go('#xp-datagrid', true) },
     { group: 'Experience', label: 'Universal Music Group', icon: '→', keywords: 'umg republic records data engineering', run: go('#xp-umg', true) },

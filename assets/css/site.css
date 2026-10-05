@@ -332,6 +332,7 @@ html:not(.js) [data-js] { display: none !important; }
 /* logo map: one place for every file, its aspect ratio (--ar) and strip height (--lh).
    Everything renders as a monochrome mask so seven brands read as one family. */
 .logo[data-logo] { -webkit-mask-image: var(--src); mask-image: var(--src); }
+.logo[data-logo="gumloop"] { --src: url("../logos/gumloop-wordmark.svg"); --ar: 2.9; --lh: 22px; }
 .logo[data-logo="ramp"] { --src: url("../logos/ramp-wordmark.svg"); --ar: 3.62; --lh: 20px; }
 .logo[data-logo="datagrid-chip"] { --src: url("../logos/datagrid-mark.png"); --ar: 1; --lh: 18px; }
 .logo[data-logo="procore"] { --src: url("../logos/procore-wordmark.svg"); --ar: 7.52; --lh: 11px; }
