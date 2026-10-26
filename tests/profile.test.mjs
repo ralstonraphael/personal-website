@@ -105,3 +105,130 @@ test("evidenceIds holds role ids, project ids and the fixed section names", () =
   }
   assert.equal(ids.size, real.roles.length + real.projects.length + 3);
 });
+
+// ---- review fixes ----
+
+const base = () => fresh();
+
+test("scan: DRAFT in a learning goal fails", () => {
+  const p = base();
+  p.learningGoals.push("DRAFT goal about Kubernetes");
+  assert.ok(mentions(validateProfile(p), "learning goal"));
+});
+
+test("scan: a pending-claim marker in a skill note fails", () => {
+  const p = base();
+  p.skills[0].note = "Used on a Snowflake pipeline.";
+  assert.ok(mentions(validateProfile(p), `Skill "${p.skills[0].name}"`));
+});
+
+test("scan: a pending-claim skill name (PyTorch) fails", () => {
+  const p = base();
+  p.skills.push({ name: "PyTorch", status: "learning", projects: ["personal-website"] });
+  assert.ok(mentions(validateProfile(p), "PyTorch"));
+});
+
+test("scan: DRAFT in a skill field and in the identity fail", () => {
+  const p = base();
+  p.skills[0].note = "DRAFT";
+  assert.ok(mentions(validateProfile(p), `Skill "${p.skills[0].name}"`));
+  const q = base();
+  q.identity.headline += " DRAFT";
+  assert.ok(mentions(validateProfile(q), "identity"));
+});
+
+test("rule d: DRAFT is caught case-insensitively", () => {
+  const p = base();
+  p.projects[2].stack.push("Draft stack item");
+  assert.ok(mentions(validateProfile(p), "stone-scraper"));
+});
+
+test("rule d: a word merely containing draft is not flagged", () => {
+  const p = base();
+  p.projects[2].whatIsThis += " Redrafted twice.";
+  assert.deepEqual(validateProfile(p), []);
+});
+
+test("markers: regex catches 'eight pull requests' in an approved role", () => {
+  const p = base();
+  p.roles[1].scope += " Landed eight pull requests.";
+  assert.ok(mentions(validateProfile(p), "ramp"));
+});
+
+test("markers: regex catches '90 percent' in an approved role", () => {
+  const p = base();
+  p.roles[1].scope += " Cut extraction by 90 percent.";
+  assert.ok(mentions(validateProfile(p), "ramp"));
+});
+
+test("markers: a malformed regex marker is reported", () => {
+  const p = base();
+  p.pendingClaims[0].markers = [{ regex: "(" }];
+  assert.ok(mentions(validateProfile(p), "Merged 8 PRs"));
+});
+
+test("markers: no marker of the real profile matches the real approved slice", () => {
+  const text = JSON.stringify(approvedSlice(real));
+  for (const claim of real.pendingClaims) {
+    for (const m of claim.markers) {
+      const hit = typeof m === "string" ? text.toLowerCase().includes(m.toLowerCase()) : new RegExp(m.regex, "i").test(text);
+      assert.equal(hit, false, `marker ${JSON.stringify(m)} of "${claim.claim.slice(0, 30)}" matches the slice`);
+    }
+  }
+});
+
+test("slice: an extra key on an approved role never reaches the slice", () => {
+  const p = base();
+  p.roles[1].internalNote = "private reviewer remark";
+  p.projects[0].internalNote = "also private";
+  p.identity.internalNote = "and this";
+  p.notYet[0].internalNote = "and this too";
+  assert.equal(JSON.stringify(approvedSlice(p)).includes("private"), false);
+  assert.equal(JSON.stringify(approvedSlice(p)).includes("internalNote"), false);
+});
+
+test("slice: a skill's note never reaches the slice", () => {
+  const p = base();
+  p.skills[0].note = "reviewer remark about this skill";
+  const slice = approvedSlice(p);
+  assert.equal(slice.skills.some((s) => "note" in s), false);
+  assert.equal(JSON.stringify(slice).includes("reviewer remark"), false);
+});
+
+test("slice: whitelisted fields are kept and undefined ones omitted", () => {
+  const slice = approvedSlice(real);
+  const gumloop = slice.roles.find((r) => r.id === "gumloop");
+  assert.equal(gumloop.current, true);
+  assert.equal("metrics" in gumloop, false);
+  assert.equal("source" in gumloop, false);
+  assert.ok(slice.identity.links.github);
+});
+
+test("robustness: approvedSlice throws, listing the problems, on an invalid profile", () => {
+  const p = base();
+  p.projects[0].evidence = [];
+  assert.throws(() => approvedSlice(p), (e) => e instanceof Error && e.message.includes("personal-website"));
+});
+
+test("robustness: a role without a source fails", () => {
+  const p = base();
+  delete p.roles[1].source;
+  assert.ok(mentions(validateProfile(p), "ramp"));
+});
+
+test("robustness: a role with a non-https source fails", () => {
+  const p = base();
+  p.roles[1].source = "http://example.com";
+  assert.ok(mentions(validateProfile(p), "ramp"));
+});
+
+test("robustness: reserved ids are rejected on roles and projects", () => {
+  for (const id of ["identity", "notYet", "learningGoals"]) {
+    const p = base();
+    p.roles[1].id = id;
+    assert.ok(mentions(validateProfile(p), id), `role id ${id}`);
+    const q = base();
+    q.projects[0].id = id;
+    assert.ok(mentions(validateProfile(q), id), `project id ${id}`);
+  }
+});
