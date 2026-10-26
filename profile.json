@@ -1,0 +1,169 @@
+{
+  "version": "0.1.0-draft",
+  "status": "DRAFT, pending owner review: built from what the public site and public repos already say, nothing private",
+  "identity": {
+    "name": "Ralston Raphael",
+    "headline": "Founding Forward Deployed Engineer at Gumloop",
+    "location": "Palo Alto, CA",
+    "education": "Trinity College, Hartford CT: B.S. Computer Science and Applied Mathematics, expected May 2027",
+    "links": {
+      "site": "https://ralstonraphael.github.io/personal-website/",
+      "github": "https://github.com/ralstonraphael",
+      "linkedin": "https://www.linkedin.com/in/ralston-raphael/"
+    },
+    "contact": "ralstone2005@gmail.com (shown publicly on the site)",
+    "source": "https://ralstonraphael.github.io/personal-website/"
+  },
+  "roles": [
+    {"org": "Gumloop", "title": "Founding Forward Deployed Engineer", "dates": "2026-10 to present", "location": "San Francisco",
+     "scope": "Helps teams build useful AI agents on Gumloop's self-serve automation platform.", "current": true,
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "Ramp", "title": "AI Product Operations, Internal AI", "dates": "2026-05 to 2026-10", "location": "New York",
+     "scope": "Measurement for Glass, Ramp's internal AI platform: agent telemetry, a session-leverage methodology, and a human-in-the-loop skill-improvement system.",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "Datagrid AI (acquired by Procore)", "title": "Intern, then AI Agent Solutions Architect, then Forward Deployed Engineer at Procore", "dates": "2025-06 to 2026-05", "location": "San Francisco",
+     "scope": "Built and rolled out AI agents for construction teams, including an SMS agent for field crews.",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "Universal Music Group (Republic Records)", "title": "Data Engineering Intern", "dates": "2025-06 to 2025-07", "location": "Santa Monica",
+     "scope": "Scrapers and a data pipeline over editorial playlists for A&R research.",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "SoFi", "title": "Sophomore Extern", "dates": "2025-06", "location": "San Francisco",
+     "scope": "Prototyped a gamified financial-literacy app in Figma and pitched it to product leadership.",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "Norstella", "title": "Strategy Intern", "dates": "2025-04 to 2025-05",
+     "scope": "Built an enterprise RAG system for document analysis and flash reports (see project flash-report-ai).",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "DxD HealthTech x Stanford Biodesign", "title": "Innovation Intern", "dates": "2024-07",
+     "scope": "Case competitions, Biodesign sessions, and industry speakers.",
+     "source": "https://ralstonraphael.github.io/personal-website/"},
+    {"org": "Longitude Capital", "title": "VC Analyst Intern", "dates": "2024-06 to 2024-07", "location": "Menlo Park",
+     "scope": "Financial models in Capital IQ for a medtech investment review.",
+     "source": "https://ralstonraphael.github.io/personal-website/"}
+  ],
+  "projects": [
+    {
+      "id": "personal-website", "name": "Personal website", "status": "shipped", "year": 2026, "ownerReview": "pending",
+      "stack": ["HTML", "CSS", "JavaScript", "GitHub Pages"],
+      "evidence": ["https://ralstonraphael.github.io/personal-website/", "https://github.com/ralstonraphael/personal-website"],
+      "whatIsThis": "A one-page portfolio with a live GitHub contributions heatmap and a résumé that prints from the page itself.",
+      "whyThisChoice": "Plain HTML, CSS and JavaScript on GitHub Pages: one page needs no framework or build step, and it deploys on every push.",
+      "whatBreaks": "The contributions card depends on an outside API and shows 'Loading contributions…' if it fails; the social preview image needs an absolute URL.",
+      "whatILearned": "DRAFT for Ralston: what building it with a coding agent taught him about reviewing visual changes."
+    },
+    {
+      "id": "flash-report-ai", "name": "Flash Report AI", "status": "shipped", "year": 2025, "ownerReview": "pending",
+      "stack": ["Python", "LangChain", "Pinecone", "OpenAI API", "Docling", "Streamlit"],
+      "evidence": ["https://github.com/ralstonraphael/ai-flash-report"],
+      "whatIsThis": "A retrieval-augmented app that turns corporate documents (PDF, DOCX, CSV) into cited executive reports, exported as styled DOCX.",
+      "whyThisChoice": "Retrieval with maximal marginal relevance, so a report draws on several different passages instead of near-duplicates of one.",
+      "whatBreaks": "Answers are only as good as retrieval: a question whose answer is spread across documents can come back incomplete. It needs an OpenAI key to run.",
+      "whatILearned": "DRAFT for Ralston: what tuning retrieval taught him about cost and answer quality."
+    },
+    {
+      "id": "stone-scraper", "name": "Stone Scraper", "status": "shipped", "year": 2025, "ownerReview": "pending",
+      "stack": ["Python", "Selenium", "BeautifulSoup", "LangChain", "Ollama", "Streamlit"],
+      "evidence": ["https://github.com/ralstonraphael/Stone_Scraper", "https://stonescraper.streamlit.app/"],
+      "whatIsThis": "Scrapes a web page, cleans the HTML, and lets you ask a local language model to pull structured data out of it.",
+      "whyThisChoice": "Local models through Ollama, so page content stays on the machine and parsing costs nothing per call.",
+      "whatBreaks": "Selenium scraping breaks when a site changes its layout or blocks automated browsers; the parse step needs a local Ollama model running.",
+      "whatILearned": "DRAFT for Ralston."
+    },
+    {
+      "id": "moodle-mcp", "name": "moodle-mcp", "status": "shipped", "year": 2026, "ownerReview": "pending",
+      "stack": ["Python", "Model Context Protocol", "Moodle web-service API", "GitHub Actions"],
+      "evidence": ["https://github.com/ralstonraphael/moodle-mcp"],
+      "whatIsThis": "An MCP server (about 950 lines of Python) that lets Claude read a student's Moodle: what's due, course files, announcements and grades.",
+      "whyThisChoice": "It signs in with the personal token Moodle gives its phone app and calls the app's own web-service API, so it sees exactly what the app sees, without scraping or asking for a password.",
+      "whatBreaks": "It only works on Moodle sites that allow the mobile app, and stops when the token is revoked or expires.",
+      "whatILearned": "DRAFT for Ralston."
+    },
+    {
+      "id": "diagram-check", "name": "Diagram check (CPSC 415 team project)", "status": "shipped", "year": 2026, "ownerReview": "pending",
+      "stack": ["Python", "FastAPI", "OpenRouter", "Gemini image model", "GPT-4o vision", "pytest", "Playwright"],
+      "evidence": ["https://github.com/javieromolopez/TP1"],
+      "role": "Team of two with Javier Romo. Ralston built the server, model calls, validator, page and eval (tests first) and wrote the spec; Javier wrote the plan and reviewed.",
+      "whatIsThis": "A web app that draws a labeled science diagram for a chosen topic, then has a vision model check the picture itself against a hand-written checklist; the grade is computed in code.",
+      "whyThisChoice": "The critic never sees the generation prompt, so it has to judge the image, and the model never grades itself: our code turns its observations into the verdict.",
+      "whatBreaks": "The critic misses labels that point at the wrong part: it passed a circuit whose 'wire' label points at the battery.",
+      "whatILearned": "DRAFT for Ralston: the critic's confident false pass, and why the eval set exists."
+    },
+    {
+      "id": "receipt-reader", "name": "Receipt reader with an arithmetic check (CPSC 415 lab)", "status": "shipped", "year": 2026, "ownerReview": "pending",
+      "stack": ["Python", "OpenRouter", "vision models", "pytest", "Claude Code hooks"],
+      "evidence": ["https://github.com/ralstonraphael/cpsc415-week05"],
+      "whatIsThis": "A command-line tool that reads a receipt photo into JSON with a vision model, then checks in plain code that the items, tax and total add up.",
+      "whyThisChoice": "The model reads; integer-cent arithmetic decides. Two models were compared on the same receipts before picking the cheaper one.",
+      "whatBreaks": "Names and dates are not arithmetic, so a misread store name gets through; real photos cost five times the tokens of clean scans.",
+      "whatILearned": "DRAFT for Ralston: the checker caught a model reading $9.99 as $6.99 while the total was right."
+    },
+    {
+      "id": "ramp-skill-loop", "name": "Skill-improvement loop (at Ramp)", "status": "shipped", "year": 2026, "ownerReview": "pending",
+      "stack": ["Langfuse", "evals", "prompt diffs", "approval gates"],
+      "evidence": ["https://ralstonraphael.github.io/personal-website/"],
+      "evidenceNote": "Employer work: the only public evidence is his own site. Keep details at the level the site states.",
+      "whatIsThis": "Mines agent failures from Langfuse traces and proposes prompt changes that a person approves before they ship.",
+      "whyThisChoice": "DRAFT for Ralston.",
+      "whatBreaks": "DRAFT for Ralston.",
+      "whatILearned": "DRAFT for Ralston."
+    },
+    {
+      "id": "field-sms-agent", "name": "Field SMS agent (at Datagrid)", "status": "shipped", "year": 2025, "ownerReview": "pending",
+      "stack": ["LLM agents", "tool calling", "SMS"],
+      "evidence": ["https://ralstonraphael.github.io/personal-website/"],
+      "evidenceNote": "Employer work: the only public evidence is his own site.",
+      "whatIsThis": "Construction crews text a question and get an answer from their project's data.",
+      "whyThisChoice": "DRAFT for Ralston.",
+      "whatBreaks": "DRAFT for Ralston.",
+      "whatILearned": "DRAFT for Ralston."
+    },
+    {
+      "id": "roblox-game", "name": "Roblox game with his brother", "status": "learning", "year": 2026, "ownerReview": "pending",
+      "stack": ["Roblox Studio", "Luau", "Blender", "MCP servers"],
+      "evidence": ["https://ralstonraphael.github.io/personal-website/"],
+      "evidenceNote": "In development, not shipped. The chatbot must not describe it as a released game.",
+      "whatIsThis": "A game in development, built in Roblox Studio and Blender with AI agents driving both through their MCP servers.",
+      "whyThisChoice": "DRAFT for Ralston.",
+      "whatBreaks": "DRAFT for Ralston.",
+      "whatILearned": "DRAFT for Ralston."
+    }
+  ],
+  "skills": [
+    {"name": "Python", "status": "used_in_shipped_work", "projects": ["flash-report-ai", "stone-scraper", "moodle-mcp", "diagram-check", "receipt-reader"]},
+    {"name": "JavaScript", "status": "used_in_shipped_work", "projects": ["personal-website", "diagram-check"]},
+    {"name": "Retrieval-augmented generation (RAG)", "status": "used_in_shipped_work", "projects": ["flash-report-ai"]},
+    {"name": "LLM APIs and structured output", "status": "used_in_shipped_work", "projects": ["diagram-check", "receipt-reader", "flash-report-ai"]},
+    {"name": "Vision models", "status": "used_in_shipped_work", "projects": ["diagram-check", "receipt-reader"]},
+    {"name": "Model Context Protocol (MCP) servers", "status": "used_in_shipped_work", "projects": ["moodle-mcp"]},
+    {"name": "Evaluations for model output", "status": "used_in_shipped_work", "projects": ["diagram-check", "receipt-reader"]},
+    {"name": "Automated testing (pytest, Playwright)", "status": "used_in_shipped_work", "projects": ["diagram-check", "receipt-reader"]},
+    {"name": "FastAPI", "status": "used_in_shipped_work", "projects": ["diagram-check"]},
+    {"name": "Web scraping (Selenium, BeautifulSoup)", "status": "used_in_shipped_work", "projects": ["stone-scraper"]},
+    {"name": "Streamlit", "status": "used_in_shipped_work", "projects": ["flash-report-ai", "stone-scraper"]},
+    {"name": "Local models with Ollama", "status": "used_in_shipped_work", "projects": ["stone-scraper"]},
+    {"name": "Agent observability (Langfuse)", "status": "used_in_shipped_work", "projects": ["ramp-skill-loop"], "note": "Evidence is employer work on the site only; pending owner review."}
+  ],
+  "notYet": [
+    {"item": "Training foundation models from scratch", "why": "The portfolio focuses on applying and deploying existing AI systems to real workflows, not pretraining models.", "evidenceStatus": "no shipped work claimed"},
+    {"item": "Native iOS/Android app development", "why": "The documented portfolio work centers on web experiences and AI automation; no shipped native mobile app is claimed.", "evidenceStatus": "no shipped work claimed"},
+    {"item": "GPU kernel optimization", "why": "Low-level accelerator performance work is outside the documented product and deployment scope.", "evidenceStatus": "no shipped work claimed"}
+  ],
+  "pendingClaims": [
+    {"claim": "Privacy-safe agent telemetry on 1,200 laptops at Ramp", "source": "site"},
+    {"claim": "Merged 8 PRs into Ramp's internal AI platform", "source": "site"},
+    {"claim": "Slack agent at Ramp that ranked 8,200+ lost accounts and handed sales the top 50", "source": "site"},
+    {"claim": "Built 70+ agents and launched 20+ at Datagrid, scaled to 6,000+ employees across 3 business units, lifted 30-day adoption 62%", "source": "site"},
+    {"claim": "Datagrid SMS agent's adoption directly supported a six-figure enterprise deal; used on $200M+ construction projects", "source": "site"},
+    {"claim": "UMG pipeline over 5,000+ playlists and 100,000+ tracks cut A&R research from 14 days to 8 minutes; found rival labels in 20% more editorial playlists", "source": "site"},
+    {"claim": "Norstella RAG system analyzed 500+ pages in 2 minutes and cut flash-report generation from 8 hours to 15 minutes", "source": "site"},
+    {"claim": "Flash Report AI retrieval tuning over 10,000+ chunks cut token cost about 60%", "source": "site"},
+    {"claim": "Stone Scraper cut manual extraction by up to 90%", "source": "site"},
+    {"claim": "Longitude Capital: recommended against funding a $100M+ medtech investment, citing 3 risks, at a $1.7B AUM fund", "source": "site"},
+    {"claim": "Skills listed on the site with no public project behind them yet: SQL, Java, C, Snowflake, Pandas, NumPy, scikit-learn, PyTorch, MySQL, OpenTelemetry, A/B testing, Figma, Capital IQ", "source": "site"},
+    {"claim": "Tyree Innovation Fellow (2023 to 2025), Kathryn George Tyree Innovation Fellow Award at 2025 Honors Day; President, Trinity CS Club (2025 to 2026)", "source": "site"}
+  ],
+  "rules": [
+    "The chatbot may use identity, roles, projects whose ownerReview is 'approved', skills whose projects are approved, and notYet.",
+    "pendingClaims are never used until the owner moves a claim into an approved field.",
+    "A project with status 'learning' is never described as shipped."
+  ]
+}
