@@ -1,0 +1,83 @@
+/* /ask/ page: tokens come from ../assets/css/site.css */
+.ask {
+  width: 100%;
+  max-width: 680px;
+  margin-inline: auto;
+  padding: clamp(28px, 6vw, 72px) var(--gutter) 40px;
+}
+.ask-back { display: inline-block; font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+.ask-back:hover { color: var(--ink); }
+.ask h1 { font-size: clamp(28px, 7vw, 44px); line-height: 1.1; font-weight: 560; letter-spacing: -0.03em; }
+.ask-note { margin-top: 12px; color: var(--ink-2); max-width: 52ch; }
+
+.ask-form { margin-top: 32px; }
+.ask-form label { display: block; font-size: 14px; font-weight: 560; margin-bottom: 8px; }
+.ask-form textarea {
+  display: block;
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  padding: 12px 14px;
+  font: inherit;
+  color: var(--ink);
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--hairline-2);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-sm);
+}
+.ask-form textarea::placeholder { color: var(--muted); }
+.ask-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.ask-count { font-size: 12px; color: var(--muted); }
+
+.ask-btn {
+  padding: 10px 20px;
+  border-radius: var(--r-md);
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 560;
+  transition: transform 0.15s var(--ease-out), opacity 0.15s;
+}
+.ask-btn:hover:not(:disabled) { transform: translateY(-1px); }
+.ask-btn:active:not(:disabled) { transform: translateY(0); }
+.ask-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ask-answer { margin-top: 28px; overflow-wrap: anywhere; }
+.ask-answer:empty { display: none; }
+.ask-text { font-size: 17px; line-height: 1.6; white-space: pre-wrap; }
+.ask-text a { text-decoration: underline; text-underline-offset: 3px; }
+.ask-tag {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 2px 8px;
+  font-size: 12px;
+  color: var(--accent-ink);
+  background: var(--accent-wash);
+  border-radius: 999px;
+}
+.ask-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+.chip {
+  padding: 3px 10px;
+  font-size: 12px;
+  color: var(--ink-2);
+  background: var(--wash);
+  border: 1px solid var(--hairline-2);
+  border-radius: 999px;
+  overflow-wrap: anywhere;
+}
+
+.ask-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  max-width: 680px;
+  margin-inline: auto;
+  padding: 24px var(--gutter) 48px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ask-foot a:hover { color: var(--ink); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ask *, .ask-foot * { transition: none !important; animation: none !important; }
+  :focus-visible { animation: none; }
+}

@@ -8,12 +8,13 @@ type AskDeps = { fetch: typeof fetch; env: Record<string, string | undefined>; n
 type AskResult = { status: number; body: Record<string, unknown>; headers?: Record<string, string> };
 
 const DEFAULT_MODEL = "openai/gpt-5.6-luna";
-const DEFAULT_ORIGINS = "https://ralstonraphael.github.io,http://localhost:4173,http://127.0.0.1:4173";
+const DEFAULT_ORIGINS = "https://ralstonraphael.github.io";
 const MAX_QUESTION = 500;
 const MAX_ANSWER = 1500;
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
 const TIMEOUT_MS = 20_000;
+const MAX_RATE_KEYS = 5000;
 
 // Read once at module load. Only the text after the first line that is exactly "---" is the prompt.
 const grounding = readFileSync(new URL("../grounding.md", import.meta.url), "utf8");
@@ -33,6 +34,53 @@ const CONTACT_EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.exec(Stri
 if (!CONTACT_EMAIL) throw new Error("identity.contact has no email address.");
 const FALLBACK = `I can't answer that reliably right now. You can email Ralston at ${CONTACT_EMAIL}.`;
 
+// Answer-text guard, computed once. Numbers are digit runs with commas removed. The allowed
+// set is every number in the approved slice's text (not dates, ids, years or evidence URLs),
+// the years named in its dates and year fields,
+// plus the numbers in the question.
+const NUMBER = /\d[\d,]*(\.\d+)?/g;
+const NUMBER_WORD =
+  /\b(?:(?:twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety)(?:[- ](?:one|two|three|four|five|six|seven|eight|nine))?|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|hundred|thousand|dozen)\b/gi;
+const SKIP_KEYS = new Set(["dates", "id", "year", "evidence"]);
+function* sliceStrings(v: unknown): Generator<string> {
+  if (typeof v === "string") yield v;
+  else if (Array.isArray(v)) for (const x of v) yield* sliceStrings(x);
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) if (!SKIP_KEYS.has(k)) yield* sliceStrings(x);
+}
+const numbersIn = (text: string): string[] => (text.match(NUMBER) ?? []).map((n) => n.replace(/,/g, ""));
+const wordsIn = (text: string): string[] => (text.match(NUMBER_WORD) ?? []).map((w) => w.toLowerCase().replace(/ /g, "-"));
+const SLICE_TEXT = [...sliceStrings(slice)].join("\n");
+// Years in approved dates/year fields are facts too ("since 2026"); month fragments like the
+// "10" in "2026-10" are not, so they can't license a made-up "10 days".
+function* sliceYears(v: unknown, key = ""): Generator<string> {
+  if ((key === "dates" || key === "year") && (typeof v === "string" || typeof v === "number")) {
+    yield* (String(v).match(/\b(?:19|20)\d{2}\b/g) ?? []);
+  } else if (Array.isArray(v)) for (const x of v) yield* sliceYears(x, key);
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) yield* sliceYears(x, k);
+}
+const SLICE_NUMBERS = new Set([...numbersIn(SLICE_TEXT), ...sliceYears(slice)]);
+const SLICE_WORDS = new Set(wordsIn(SLICE_TEXT));
+const MARKERS: Array<(text: string) => boolean> = (profile.pendingClaims ?? []).flatMap((c: any) =>
+  (c.markers ?? []).map((m: unknown) => {
+    if (typeof m === "string") {
+      const needle = m.toLowerCase();
+      return (t: string) => t.toLowerCase().includes(needle);
+    }
+    const re = new RegExp((m as { regex: string }).regex, "i");
+    return (t: string) => re.test(t);
+  }),
+);
+
+function answerGuard(answer: string, question: string): "ungrounded_number" | "held_claim" | null {
+  const qNumbers = new Set(numbersIn(question));
+  const qWords = new Set(wordsIn(question));
+  const body = answer.replace(/^[ \t]*\d+[.)][ \t]+/gm, "");
+  if (numbersIn(body).some((n) => !SLICE_NUMBERS.has(n) && !qNumbers.has(n))) return "ungrounded_number";
+  if (wordsIn(body).some((w) => !SLICE_WORDS.has(w) && !qWords.has(w))) return "ungrounded_number";
+  if (MARKERS.some((test) => test(answer))) return "held_claim";
+  return null;
+}
+
 const failure = (status: number, error: string): AskResult => ({
   status,
   body: { error, answer: FALLBACK, evidence: [], refused: true },
@@ -48,11 +96,15 @@ function rateLimited(ip: string, now: number): boolean {
     return true;
   }
   recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > 5000) {
-    for (const [k, v] of hits) if (v.every((t) => now - t >= RATE_WINDOW_MS)) hits.delete(k);
+  if (!hits.has(ip) && hits.size >= MAX_RATE_KEYS) {
+    const oldest = hits.keys().next().value;
+    if (oldest !== undefined) hits.delete(oldest);
   }
+  hits.set(ip, recent);
   return false;
+}
+export function rateLimiterSize(): number {
+  return hits.size;
 }
 
 function allowedOrigins(env: Record<string, string | undefined>): string[] {
@@ -148,11 +200,14 @@ export async function askCore(input: AskInput, deps: AskDeps): Promise<AskResult
   let data: any;
   try {
     data = await res.json();
-  } catch {
-    return failure(200, "invalid_reply");
+  } catch (err) {
+    const name = (err as { name?: string } | null)?.name;
+    return name === "TimeoutError" || name === "AbortError" ? failure(504, "timeout") : failure(200, "invalid_reply");
   }
   const reply = validReply(data?.choices?.[0]?.message?.content);
   if (!reply) return failure(200, "invalid_reply");
+  const blocked = answerGuard(reply.answer, q);
+  if (blocked) return failure(200, blocked);
 
   return {
     status: 200,
