@@ -1,1 +1,13 @@
-{"name":"personal-website","private":true,"type":"module","scripts":{"test":"node --test","validate":"node scripts/validate-profile.mjs"}}
+{
+  "name": "personal-website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "validate": "node scripts/validate-profile.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1"
+  }
+}
