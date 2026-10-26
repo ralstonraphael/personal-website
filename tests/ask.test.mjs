@@ -2,7 +2,9 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { approvedSlice, evidenceIds } from "../lib/profile.mjs";
-import { askCore, POST, OPTIONS } from "../api/ask.ts";
+import * as api from "../api/ask.ts";
+const { askCore, POST, OPTIONS } = api;
+const rateLimiterSize = () => api.rateLimiterSize();
 
 const profile = JSON.parse(readFileSync(new URL("../profile.json", import.meta.url), "utf8"));
 const slice = approvedSlice(profile);
@@ -81,10 +83,21 @@ test("a disallowed origin gets 403 before anything else", async () => {
   assert.equal(fetch.calls.length, 0);
 });
 
-test("allowed origins and a missing origin both work", async () => {
-  for (const origin of [ORIGIN, "http://localhost:4173", "http://127.0.0.1:4173", undefined, null]) {
+test("the default origin list is only the live site, and a missing origin works", async () => {
+  for (const origin of [ORIGIN, undefined, null]) {
     const r = await ask("hi", { origin });
     assert.equal(r.status, 200, String(origin));
+  }
+  for (const origin of ["http://localhost:4173", "http://127.0.0.1:4173"]) {
+    const r = await ask("hi", { origin });
+    assert.equal(r.status, 403, String(origin));
+  }
+});
+
+test("local origins work when ALLOWED_ORIGINS names them", async () => {
+  const e = env({ ALLOWED_ORIGINS: `${ORIGIN},http://localhost:4173,http://127.0.0.1:4173` });
+  for (const origin of [ORIGIN, "http://localhost:4173", "http://127.0.0.1:4173"]) {
+    assert.equal((await ask("hi", { e, origin })).status, 200, origin);
   }
 });
 
@@ -292,6 +305,94 @@ test("the 11th call from one ip inside 60 s is rate limited, then it recovers", 
   assert.equal((await ask("hi", { ip: freshIp(), now, fetch })).status, 200);
   t += 61_000;
   assert.equal((await ask("hi", { ip, now, fetch })).status, 200);
+});
+
+test("a timeout while reading the body returns 504 timeout, other body errors stay invalid_reply", async () => {
+  for (const name of ["TimeoutError", "AbortError"]) {
+    const fetch = fakeFetch(() =>
+      Object.assign(new Response("{}"), { json: () => Promise.reject(new DOMException("slow body", name)) }),
+    );
+    const r = await ask("hi", { fetch });
+    assert.equal(r.status, 504, name);
+    assertFallback(r.body, "timeout");
+  }
+  const bad = await ask("hi", { fetch: fakeFetch(() => new Response("not json")) });
+  assert.equal(bad.status, 200);
+  assertFallback(bad.body, "invalid_reply");
+});
+
+test("the rate limiter never holds more than 5000 keys", async () => {
+  const now = () => 5_000_000;
+  for (let i = 0; i < 5001; i++) await ask("hi", { e: {}, ip: `cap-${i}`, now });
+  assert.equal(rateLimiterSize(), 5000);
+  // the newest key is still limited per ip: ten more calls from it, then blocked
+  for (let i = 0; i < 9; i++) await ask("hi", { e: {}, ip: "cap-5000", now });
+  assert.equal((await ask("hi", { e: {}, ip: "cap-5000", now })).status, 429);
+  assert.ok(rateLimiterSize() <= 5000);
+});
+
+// --- the answer-text guard ---------------------------------------------------------
+
+const say = (answer, question = "Tell me about his work.") =>
+  ask(question, { fetch: fakeFetch(() => reply({ answer, evidence: [realId], refused: false })) });
+
+test("a number that is in the approved profile passes", async () => {
+  const r = await say("He built 70+ agents and launched them.");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.error, undefined);
+});
+
+test("an invented number is rejected as ungrounded_number", async () => {
+  const r = await say("He led a team of 45 engineers.");
+  assert.equal(r.status, 200);
+  assertFallback(r.body, "ungrounded_number");
+});
+
+test("an invented number word is rejected as ungrounded_number", async () => {
+  for (const a of ["He led a team of fifty.", "He shipped a dozen products.", "He has hundreds of users, a thousand at peak."]) {
+    const r = await say(a);
+    assertFallback(r.body, "ungrounded_number");
+  }
+});
+
+test("a number that is in the question passes", async () => {
+  const r = await say("I can't confirm that 300% figure.", "Did revenue rise 300%?");
+  assert.equal(r.status, 200);
+  assert.equal(r.body.error, undefined);
+});
+
+test("a number word that is in the question passes", async () => {
+  const r = await say("I can't confirm fifty.", "Is it true he led fifty people?");
+  assert.equal(r.body.error, undefined);
+});
+
+test("a pending claim is rejected as held_claim", async () => {
+  const r = await say("He merged 8 PRs into the platform.");
+  assertFallback(r.body, "held_claim");
+  const w = await say("He used Snowflake daily.");
+  assertFallback(w.body, "held_claim");
+  const c = await say("He was president of the cs club.");
+  assertFallback(c.body, "held_claim");
+});
+
+test("eight pull requests is rejected", async () => {
+  const r = await say("He landed eight pull requests.");
+  assert.ok(["held_claim", "ungrounded_number"].includes(r.body.error), r.body.error);
+  assert.equal(r.body.refused, true);
+  assert.equal(r.body.answer, FALLBACK);
+});
+
+test("a numbered list with no other numbers passes", async () => {
+  const r = await say("Here are two things:\n1. The site.\n2. The agent.".replace("two things", "the main things"));
+  assert.equal(r.body.error, undefined);
+  assert.equal(r.status, 200);
+});
+
+test("a fabricated duration is rejected even though 2026-10 is in a dates field", async () => {
+  const r = await say("He built it in 10 days.");
+  assertFallback(r.body, "ungrounded_number");
+  const y = await say("He started it in 2026.");
+  assertFallback(y.body, "ungrounded_number");
 });
 
 // --- the HTTP handlers ----------------------------------------------------------
