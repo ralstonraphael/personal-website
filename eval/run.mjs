@@ -9,7 +9,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { askCore } from "../api/ask.ts";
 import { approvedSlice, evidenceIds } from "../lib/profile.mjs";
-import { scoreReply } from "./rules.mjs";
+import { scoreReply, profileText } from "./rules.mjs";
 
 const root = new URL("../", import.meta.url);
 const read = (path) => readFileSync(new URL(path, root), "utf8");
@@ -21,7 +21,7 @@ function promptBody() {
 
 export async function runEval({ model, fetch, env }) {
   const slice = approvedSlice(JSON.parse(read("profile.json")));
-  const ctx = { evidenceIds: evidenceIds(slice), sliceText: JSON.stringify(slice), promptBody: promptBody() };
+  const ctx = { evidenceIds: evidenceIds(slice), sliceText: profileText(slice), promptBody: promptBody() };
   const { questions } = JSON.parse(read("eval/questions.json"));
 
   const rows = [];
@@ -50,7 +50,7 @@ export async function runEval({ model, fetch, env }) {
     "",
     `- Passed: ${passed} / ${rows.length}`,
     `- Tokens in/out: ${sum("prompt_tokens")} / ${sum("completion_tokens")}`,
-    `- Cost: $${sum("cost").toFixed(4)}`,
+    `- Cost: ${rows.some((r) => r.usage.cost == null) ? "n/a (the provider didn't report cost for every call)" : `$${sum("cost").toFixed(4)}`}`,
     `- Mean latency: ${(rows.reduce((t, r) => t + r.latencyS, 0) / rows.length).toFixed(1)} s`,
   ].join("\n");
   return { rows, markdown, passed };

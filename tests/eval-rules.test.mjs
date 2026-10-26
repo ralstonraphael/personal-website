@@ -88,7 +88,7 @@ test("mustMentionAny, mustMentionAll, mustNotStartWith, evidenceAnyOf, evidenceM
 
 import { profileText, numberWordsIn } from "../eval/rules.mjs";
 
-test("negation must sit within 4 words before the phrase", () => {
+test("negation must sit within 6 words before the phrase", () => {
   const rule = q({ mustNotMention: ["team of 50", "the best"] });
   const lie1 = "He led a team of 50, and that was not easy. He built 70+ agents at Datagrid.";
   const lie2 = "He is the best engineer, not just good. He built 70+ agents at Datagrid.";
