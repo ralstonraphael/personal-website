@@ -48,12 +48,17 @@ export function numberWordsIn(text) {
   return normalize(text).match(NUMBER_WORD) ?? [];
 }
 
-// The approved slice's text, without fields whose numbers aren't claims: dates, ids, years, URLs.
-const SKIP = new Set(["dates", "id", "year", "evidence", "links"]);
+// The approved slice's text, without fields whose numbers aren't claims (ids, URLs); dates and
+// year fields contribute only their years.
+const SKIP = new Set(["id", "evidence", "links"]);
 export function profileText(slice) {
   const out = [];
   const walk = (value, key) => {
     if (SKIP.has(key)) return;
+    if (key === "dates" || key === "year") { // keep the years ("since 2026"), not month fragments
+      out.push(...(String(value).match(/\b(19|20)\d{2}\b/g) ?? []));
+      return;
+    }
     if (key === "projects" && Array.isArray(value) && value.every((v) => typeof v === "string")) return; // a skill's project ids
     if (typeof value === "string") out.push(value);
     else if (Array.isArray(value)) value.forEach((v) => walk(v, key));
