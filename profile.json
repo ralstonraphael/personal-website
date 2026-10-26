@@ -414,8 +414,7 @@
       "status": "used_in_shipped_work",
       "projects": [
         "ramp-skill-loop"
-      ],
-      "note": "Evidence is employer work on the site only; pending owner review."
+      ]
     }
   ],
   "learningGoals": [
@@ -446,7 +445,9 @@
       "claim": "Merged 8 PRs into Ramp's internal AI platform",
       "source": "site",
       "markers": [
-        "8 PRs",
+        {
+          "regex": "\\b(8|eight)\\s+(merged\\s+)?(prs?|pull requests?)\\b"
+        },
         "merged 8"
       ]
     },
@@ -454,17 +455,31 @@
       "claim": "Stone Scraper cut manual extraction by up to 90%",
       "source": "site",
       "markers": [
-        "90%"
+        {
+          "regex": "\\b90\\s*(%|percent)"
+        }
       ]
     },
     {
-      "claim": "Skills listed on the site with no public project behind them yet: SQL, Java, C, Snowflake, Pandas, NumPy, scikit-learn, PyTorch, MySQL, OpenTelemetry, A/B testing, Figma, Capital IQ",
+      "claim": "Skills listed on the site with no public project behind them yet: SQL, Java, C, Snowflake, Pandas, NumPy, scikit-learn, PyTorch, MySQL, OpenTelemetry, A/B testing",
       "source": "site",
       "markers": [
+        {
+          "regex": "\\bSQL\\b"
+        },
+        {
+          "regex": "\\bJava\\b"
+        },
         "Snowflake",
-        "PyTorch",
+        "Pandas",
+        "NumPy",
         "scikit-learn",
-        "OpenTelemetry"
+        "PyTorch",
+        "MySQL",
+        "OpenTelemetry",
+        {
+          "regex": "\\bA/B test"
+        }
       ]
     },
     {
@@ -472,7 +487,9 @@
       "source": "site",
       "markers": [
         "Tyree",
-        "CS Club"
+        "CS Club",
+        "Computer Science Club",
+        "Honors Day"
       ]
     }
   ],
