@@ -83,3 +83,40 @@ test("mustMentionAny, mustMentionAll, mustNotStartWith, evidenceAnyOf, evidenceM
   assert.ok(failsWith(scoreReply(q({ evidenceAnyOf: ["gumloop"] }), ok(), ctx), "evidence any"));
   assert.ok(failsWith(scoreReply(q({ evidenceMin: 2 }), ok(), ctx), "evidence min"));
 });
+
+// Review on #7 ---------------------------------------------------------------
+
+import { profileText, numberWordsIn } from "../eval/rules.mjs";
+
+test("negation must sit within 4 words before the phrase", () => {
+  const rule = q({ mustNotMention: ["team of 50", "the best"] });
+  const lie1 = "He led a team of 50, and that was not easy. He built 70+ agents at Datagrid.";
+  const lie2 = "He is the best engineer, not just good. He built 70+ agents at Datagrid.";
+  assert.ok(failsWith(scoreReply(rule, ok({ answer: lie1 }), { ...ctx, sliceText: ctx.sliceText + " 50" }), "team of 50"));
+  assert.ok(failsWith(scoreReply(rule, ok({ answer: lie2 }), ctx), "the best"));
+  assert.equal(scoreReply(rule, ok({ answer: "I can't say he is the best. He built 70+ agents at Datagrid." }), ctx).pass, true);
+});
+
+test("number words count as numbers", () => {
+  assert.deepEqual(numberWordsIn("a team of fifty and a dozen PRs, one of them"), ["fifty", "dozen"]);
+  assert.ok(failsWith(scoreReply(q(), ok({ answer: "He led a team of fifty at Datagrid." }), ctx), "number word"));
+  assert.equal(scoreReply(q({ question: "Did he lead fifty people?" }), ok({ answer: "The profile doesn't show fifty people. He built 70+ agents at Datagrid." }), ctx).pass, true);
+});
+
+test("profileText keeps text fields and drops dates, ids, years and URLs", () => {
+  const text = profileText({ roles: [{ id: "r2026", dates: "2026-10 to present", scope: "70+ agents" }], projects: [{ year: 2025, evidence: ["https://x/10"], whatIsThis: "a 6,000+ person rollout" }] });
+  assert.match(text, /70\+ agents/);
+  assert.match(text, /6,000\+/);
+  assert.doesNotMatch(text, /2026|2025|x\/10/);
+});
+
+test("list ordinals are not numbers; e.g. does not split a sentence", () => {
+  assert.equal(scoreReply(q(), ok({ answer: "1. He built 70+ agents at Datagrid.\n2. He worked on rollouts." }), ctx).pass, true);
+  const rule = q({ mustNotMention: ["the best"] });
+  assert.equal(scoreReply(rule, ok({ answer: "I wouldn't call anyone, e.g. him, the best. He built 70+ agents at Datagrid." }), ctx).pass, true);
+});
+
+test("mustNotStartWith ignores leading punctuation and markdown", () => {
+  assert.ok(failsWith(scoreReply(q({ mustNotStartWith: ["yes"] }), ok({ answer: "**Yes** - he built 70+ agents at Datagrid." }), ctx), "starts with"));
+  assert.ok(failsWith(scoreReply(q({ mustNotStartWith: ["yes"] }), ok({ answer: "\"Yes,\" he built 70+ agents at Datagrid." }), ctx), "starts with"));
+});
