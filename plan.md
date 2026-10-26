@@ -2,7 +2,7 @@
 
 Implements [`spec.md`](spec.md) for [`intent/ai-profile.md`](intent/ai-profile.md). The homepage stays as it is; the chatbot lives on a separate `/ask/` page.
 
-## Two spec changes to approve first
+## Two spec changes (approved October 26; spec.md updated)
 
 1. **Provider: OpenRouter instead of OpenAI direct.** Same models; OpenRouter's model list on October 26 shows the prices the spec quotes: `openai/gpt-5.6-luna` ($0.20/$1.20 per M tokens) as the candidate default, `openai/gpt-5.6-sol` ($4/$20) as the comparator. Why: the coursework OpenRouter key already exists, so there's no second account to manage. The portfolio should get its own key with a monthly cap, and the credit (about $4 left on Oct 26) needs a top-up before the eval.
 2. **Serverless host: a Vercel function for `/api/ask`.** The homepage and `/ask/` page stay on GitHub Pages, so the "reuse the existing deployment" constraint holds. Why Vercel: GitHub Pages cannot run server code, and Ralston already deploys a site on Vercel (`stoneworks-ten.vercel.app`). The alternative is Cloudflare Pages Functions, the reference site's choice, which would mean moving the whole site to Cloudflare. CORS allows only `https://ralstonraphael.github.io`. The key lives in Vercel's environment variables.
@@ -56,4 +56,4 @@ If either is rejected, steps 5 and 8 change; the profile and test-set work does 
 
 Steps 2 and 4 are independent and can run in parallel: the validator touches only `scripts/` and `tests/`, the questions only `eval/questions.json`. Everything that touches the model (5, 7) waits for the grounding prompt (3), so the prompt is fixed before the eval runs.
 
-**Approved by:** _pending: Ralston to review the two spec changes and step 1_
+**Approved by:** Ralston Raphael, October 26, 2026. Both spec changes approved; profile reviewed (8 site claims approved, 4 held back; reflection fields written by him).

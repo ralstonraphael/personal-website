@@ -51,10 +51,10 @@ If asked about any of these, the assistant says the profile does not document sh
 ### Chatbot and API (future milestone)
 
 - **What it does:** Answers the visitor's question, "Should we work together?", using only the approved profile. A separate `/ask/` page can host the chat without changing the current homepage UI.
-- **Language:** TypeScript in a serverless endpoint plus minimal browser JavaScript on the separate page. **Why:** It shares the site's JavaScript ecosystem and can keep a model key server-side. Python/FastAPI is viable, but would require a separately managed server for this static site.
-- **Model:** Candidate default `gpt-5.6-luna`; comparator `gpt-5.6-sol`. **Why:** The lower-cost model may be enough for a small, well-scoped profile; the stronger model is a check on refusal and grounding quality. Run both on the same ten-plus adversarial questions before final selection. This comparison is planned, not claimed as already completed. [Current model list](https://platform.openai.com/docs/models).
+- **Language:** TypeScript in a Vercel serverless function (`api/ask.ts`) plus minimal browser JavaScript on the separate page. **Why:** It shares the site's JavaScript ecosystem and keeps the model key server-side. The homepage and `/ask/` page stay on GitHub Pages, and the function allows only that origin. Alternatives: Python/FastAPI would need a separately managed server; moving the whole site to Cloudflare Pages Functions, as the reference site does, would change the existing deployment. *(Host chosen October 26, approved by Ralston.)*
+- **Model:** Candidate default `openai/gpt-5.6-luna`; comparator `openai/gpt-5.6-sol`, both called through **OpenRouter** with a separate, monthly-capped portfolio key. *(Provider changed from OpenAI direct on October 26, approved by Ralston: same models at the same list prices on OpenRouter's model list, and no second account.)* **Why:** The lower-cost model may be enough for a small, well-scoped profile; the stronger model is a check on refusal and grounding quality. Run both on the same ten-plus adversarial questions before final selection. This comparison is planned, not claimed as already completed. [Current model list](https://openrouter.ai/models).
 - **Interfaces:** Proposed `POST /api/ask` accepting a short question and returning an answer, evidence IDs, and a refusal flag. The API loads a fixed, reviewed profile version; visitors cannot modify it.
-- **Dependencies:** A serverless host, provider API access, server-side secret storage, origin restrictions, input length and request-rate limits.
+- **Dependencies:** Vercel (function + environment-variable secret store), an OpenRouter key, origin restriction to `https://ralstonraphael.github.io`, input length and request-rate limits.
 
 ## Behavior to verify
 
@@ -71,7 +71,7 @@ Invalid or oversized questions receive a clear input error. If the model key is 
 
 ## Cost estimate
 
-Design estimate: at most 2,000 input tokens and 250 output tokens per question. At the published October 2026 list prices of $0.20/$1.20 per million input/output tokens for `gpt-5.6-luna`, 1,000 questions would cost about **$0.70** in model tokens. The same traffic at $4/$20 for `gpt-5.6-sol` would cost about **$13**. Hosting, retries, and future price changes are separate. Start with a small monthly usage cap and recheck [provider pricing](https://platform.openai.com/pricing) before deployment.
+Design estimate: at most 2,000 input tokens and 250 output tokens per question. At the published October 2026 list prices of $0.20/$1.20 per million input/output tokens for `gpt-5.6-luna`, 1,000 questions would cost about **$0.70** in model tokens. The same traffic at $4/$20 for `gpt-5.6-sol` would cost about **$13**. Hosting, retries, and future price changes are separate. Start with a small monthly usage cap and recheck [OpenRouter's model list](https://openrouter.ai/models) for prices before deployment.
 
 ## Out of scope for this milestone
 

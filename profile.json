@@ -1,6 +1,6 @@
 {
-  "version": "0.1.0-draft",
-  "status": "DRAFT, pending owner review: public-site and public-repo data only. Nothing in this file may be used by the chatbot until its ownerReview is 'approved'.",
+  "version": "0.2.0",
+  "status": "Reviewed and approved by Ralston Raphael, October 26, 2026. Public-site and public-repo data only; claims he held back stay in pendingClaims and are never used.",
   "identity": {
     "name": "Ralston Raphael",
     "headline": "Founding Forward Deployed Agentic Engineer at Gumloop",
@@ -13,7 +13,7 @@
     },
     "contact": "ralstone2005@gmail.com (shown publicly on the site)",
     "source": "https://ralstonraphael.github.io/personal-website/",
-    "ownerReview": "pending"
+    "ownerReview": "approved"
   },
   "roles": [
     {
@@ -24,7 +24,7 @@
       "scope": "Helps teams build useful AI agents on Gumloop's self-serve automation platform.",
       "current": true,
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     },
     {
       "org": "Ramp",
@@ -33,7 +33,11 @@
       "location": "New York",
       "scope": "Measurement for Glass, Ramp's internal AI platform: agent telemetry, a session-leverage methodology, and a human-in-the-loop skill-improvement system.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved",
+      "metrics": [
+        "Privacy-safe agent telemetry on 1,200 laptops",
+        "A Slack agent that ranked 8,200+ lost accounts and handed sales the top 50"
+      ]
     },
     {
       "org": "Datagrid AI (acquired by Procore)",
@@ -42,7 +46,10 @@
       "location": "San Francisco",
       "scope": "Built and rolled out AI agents for construction teams, including an SMS agent for field crews.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved",
+      "metrics": [
+        "Built 70+ agents and launched 20+, scaled to 6,000+ employees across 3 business units, and lifted 30-day adoption 62%"
+      ]
     },
     {
       "org": "Universal Music Group (Republic Records)",
@@ -51,7 +58,10 @@
       "location": "Santa Monica",
       "scope": "Scrapers and a data pipeline over editorial playlists for A&R research.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved",
+      "metrics": [
+        "A pipeline over 5,000+ playlists and 100,000+ tracks cut A&R research from 14 days to 8 minutes, and found rival labels in 20% more editorial playlists"
+      ]
     },
     {
       "org": "SoFi",
@@ -60,7 +70,7 @@
       "location": "San Francisco",
       "scope": "Prototyped a gamified financial-literacy app in Figma and pitched it to product leadership.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     },
     {
       "org": "Norstella",
@@ -68,7 +78,10 @@
       "dates": "2025-04 to 2025-05",
       "scope": "Built an enterprise RAG system for document analysis and flash reports.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved",
+      "metrics": [
+        "The RAG system analyzed 500+ pages in 2 minutes and cut flash-report generation from 8 hours to 15 minutes"
+      ]
     },
     {
       "org": "DxD HealthTech x Stanford Biodesign",
@@ -76,7 +89,7 @@
       "dates": "2024-07",
       "scope": "Case competitions, Biodesign sessions, and industry speakers.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     },
     {
       "org": "Longitude Capital",
@@ -85,7 +98,10 @@
       "location": "Menlo Park",
       "scope": "Financial models in Capital IQ for a medtech investment review.",
       "source": "https://ralstonraphael.github.io/personal-website/",
-      "ownerReview": "pending"
+      "ownerReview": "approved",
+      "metrics": [
+        "Recommended against funding a $100M+ medtech investment, citing 3 risks, at a $1.7B AUM fund"
+      ]
     }
   ],
   "projects": [
@@ -94,7 +110,7 @@
       "name": "Personal website",
       "status": "shipped",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "HTML",
         "CSS",
@@ -108,14 +124,14 @@
       "whatIsThis": "A one-page portfolio with a live GitHub contributions heatmap and a résumé that prints from the page itself.",
       "whyThisChoice": "Plain HTML, CSS and JavaScript on GitHub Pages: one page needs no framework or build step, and it deploys on every push.",
       "whatBreaks": "If the GitHub contributions API is unreachable, the activity card drops the GitHub view and falls back to a map of the visitor's own visit; the social preview image needs an absolute URL once the site has a domain.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "A recruiter decides in seconds, so the proof (roles, logos, numbers) has to sit above the fold; extra sections mostly add scroll."
     },
     {
       "id": "flash-report-ai",
       "name": "Flash Report AI",
       "status": "shipped",
       "year": 2025,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Python",
         "LangChain",
@@ -128,16 +144,19 @@
         "https://github.com/ralstonraphael/ai-flash-report"
       ],
       "whatIsThis": "A retrieval-augmented app that turns corporate documents (PDF, DOCX, CSV) into cited executive reports, exported as styled DOCX.",
-      "whyThisChoice": "DRAFT (inferred from the README, owner to confirm or rewrite): Retrieval with maximal marginal relevance, so a report draws on several different passages instead of near-duplicates of one.",
+      "whyThisChoice": "Retrieval with maximal marginal relevance, so a report draws on several different passages instead of near-duplicates of one.",
       "whatBreaks": "Answers are only as good as retrieval: a question whose answer is spread across documents can come back incomplete. It needs an OpenAI key to run.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "Executives trusted the reports once every claim cited its source passage; without citations a correct report still got second-guessed.",
+      "metrics": [
+        "Retrieval tuning over 10,000+ chunks cut token cost about 60%"
+      ]
     },
     {
       "id": "stone-scraper",
       "name": "Stone Scraper",
       "status": "shipped",
       "year": 2025,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Python",
         "Selenium",
@@ -150,16 +169,16 @@
         "https://github.com/ralstonraphael/Stone_Scraper"
       ],
       "whatIsThis": "Scrapes a web page, cleans the HTML, and lets you ask a local language model to pull structured data out of it.",
-      "whyThisChoice": "DRAFT (inferred from the README, owner to confirm or rewrite): Local models through Ollama, so page content stays on the machine and parsing costs nothing per call.",
+      "whyThisChoice": "Local models through Ollama, so page content stays on the machine and parsing costs nothing per call.",
       "whatBreaks": "Selenium scraping breaks when a site changes its layout or blocks automated browsers; the parse step needs a local Ollama model running.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "Getting clean HTML out of real sites broke far more often than the model's parsing did; most of the work is in the scraper, not the LLM."
     },
     {
       "id": "moodle-mcp",
       "name": "moodle-mcp",
       "status": "shipped",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Python",
         "Model Context Protocol",
@@ -170,16 +189,16 @@
         "https://github.com/ralstonraphael/moodle-mcp"
       ],
       "whatIsThis": "An MCP server (about 950 lines of Python) that lets Claude read a student's Moodle: what's due, course files, announcements and grades.",
-      "whyThisChoice": "DRAFT (inferred from the README, owner to confirm or rewrite): It signs in with the personal token Moodle gives its phone app and calls the app's own web-service API, so it sees exactly what the app sees, without scraping or asking for a password.",
+      "whyThisChoice": "It signs in with the personal token Moodle gives its phone app and calls the app's own web-service API, so it sees exactly what the app sees, without scraping or asking for a password.",
       "whatBreaks": "It only works on Moodle sites that allow the mobile app, and stops when the token is revoked or expires.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "About 950 lines of Python turned Claude into something I use daily for school; a narrow tool with the right data beats a general assistant."
     },
     {
       "id": "diagram-check",
       "name": "Diagram check (CPSC 415 team project)",
       "status": "shipped",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Python",
         "FastAPI",
@@ -197,14 +216,14 @@
       "whatIsThis": "A web app that draws a labeled science diagram for a chosen topic, then has a vision model check the picture itself against a hand-written checklist; the grade is computed in code.",
       "whyThisChoice": "The critic never sees the generation prompt, so it has to judge the image, and the model never grades itself: our code turns its observations into the verdict.",
       "whatBreaks": "The critic misses labels that point at the wrong part: it passed a circuit whose 'wire' label points at the battery.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "GPT-4o graded a circuit with a wrong label 'good' every time. Only an eval set with planted flaws caught it, so I don't trust a vision model's judgment until I've tested it."
     },
     {
       "id": "receipt-reader",
       "name": "Receipt reader with an arithmetic check (CPSC 415 lab)",
       "status": "shipped",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Python",
         "OpenRouter",
@@ -218,14 +237,14 @@
       "whatIsThis": "A command-line tool that reads a receipt photo into JSON with a vision model, then checks in plain code that the items, tax and total add up.",
       "whyThisChoice": "The model reads; integer-cent arithmetic decides. Two models were compared on the same receipts before picking the cheaper one.",
       "whatBreaks": "Names and dates are not arithmetic, so a misread store name gets through; real photos cost five times the tokens of clean scans.",
-      "whatILearned": "DRAFT: owner to write."
+      "whatILearned": "The model read $9.99 as $6.99 but got the total right; only the arithmetic check in plain code caught it. Let the model read and let code decide."
     },
     {
       "id": "ramp-skill-loop",
       "name": "Skill-improvement loop (at Ramp)",
       "status": "shipped",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Langfuse",
         "evals",
@@ -237,16 +256,16 @@
       ],
       "evidenceNote": "Employer work: the only public evidence is his own site. Keep details at the level the site states.",
       "whatIsThis": "Mines agent failures from Langfuse traces and proposes prompt changes that a person approves before they ship.",
-      "whyThisChoice": "DRAFT: owner to write.",
-      "whatBreaks": "DRAFT: owner to write.",
-      "whatILearned": "DRAFT: owner to write."
+      "whyThisChoice": "Every proposed prompt change is checked against past failures before a person approves it.",
+      "whatBreaks": "A fix can pass the old failures and still regress cases nobody logged.",
+      "whatILearned": "Most agent failures were the same few patterns repeating; mining traces found them faster than reading complaints."
     },
     {
       "id": "field-sms-agent",
       "name": "Field SMS agent (at Datagrid)",
       "status": "shipped",
       "year": 2025,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "LLM agents",
         "tool calling",
@@ -257,16 +276,19 @@
       ],
       "evidenceNote": "Employer work: the only public evidence is his own site.",
       "whatIsThis": "Construction crews text a question and get an answer from their project's data.",
-      "whyThisChoice": "DRAFT: owner to write.",
-      "whatBreaks": "DRAFT: owner to write.",
-      "whatILearned": "DRAFT: owner to write."
+      "whyThisChoice": "Crews already text, so SMS needed no app install or training.",
+      "whatBreaks": "Answers are only as current as the project data behind them, and SMS can't show drawings or long documents.",
+      "whatILearned": "Crews on site would never open a new app, but they already text; putting the agent in SMS is what got it used.",
+      "metrics": [
+        "Adoption directly supported a six-figure enterprise deal; used on $200M+ construction projects"
+      ]
     },
     {
       "id": "roblox-game",
       "name": "Roblox game with his brother",
       "status": "learning",
       "year": 2026,
-      "ownerReview": "pending",
+      "ownerReview": "approved",
       "stack": [
         "Roblox Studio",
         "Luau",
@@ -278,9 +300,9 @@
       ],
       "evidenceNote": "In development, not shipped. The chatbot must not describe it as a released game.",
       "whatIsThis": "A game in development, built in Roblox Studio and Blender with AI agents driving both through their MCP servers.",
-      "whyThisChoice": "DRAFT: owner to write.",
-      "whatBreaks": "DRAFT: owner to write.",
-      "whatILearned": "DRAFT: owner to write."
+      "whyThisChoice": "Agents drive Roblox Studio and Blender through their MCP servers, so two people can build a game's worth of content.",
+      "whatBreaks": "An agent can edit the wrong object or ship an untested change, so every change needs a check in Studio.",
+      "whatILearned": "Driving Roblox Studio and Blender through MCP, the agent is only as good as what it can see; screenshots and checks after every change matter more than the prompt."
     }
   ],
   "skills": [
@@ -388,67 +410,36 @@
       "note": "Evidence is employer work on the site only; pending owner review."
     }
   ],
-  "learningGoals": [],
-  "learningGoalsNote": "Owner to add 2–3 things he is actively learning; the course sheet asks for projects, skills and learning goals.",
+  "learningGoals": [
+    "Building and shipping a Roblox game with AI agents driving the tools."
+  ],
   "notYet": [
     {
       "item": "Training foundation models from scratch",
       "why": "The portfolio focuses on applying and deploying existing AI systems to real workflows, not pretraining models.",
       "evidenceStatus": "no shipped work claimed",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     },
     {
       "item": "Native iOS/Android app development",
       "why": "The documented portfolio work centers on web experiences and AI automation; no shipped native mobile app is claimed.",
       "evidenceStatus": "no shipped work claimed",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     },
     {
       "item": "GPU kernel optimization",
       "why": "Low-level accelerator performance work is outside the documented product and deployment scope.",
       "evidenceStatus": "no shipped work claimed",
-      "ownerReview": "pending"
+      "ownerReview": "approved"
     }
   ],
   "pendingClaims": [
-    {
-      "claim": "Privacy-safe agent telemetry on 1,200 laptops at Ramp",
-      "source": "site"
-    },
     {
       "claim": "Merged 8 PRs into Ramp's internal AI platform",
       "source": "site"
     },
     {
-      "claim": "Slack agent at Ramp that ranked 8,200+ lost accounts and handed sales the top 50",
-      "source": "site"
-    },
-    {
-      "claim": "Built 70+ agents and launched 20+ at Datagrid, scaled to 6,000+ employees across 3 business units, lifted 30-day adoption 62%",
-      "source": "site"
-    },
-    {
-      "claim": "Datagrid SMS agent's adoption directly supported a six-figure enterprise deal; used on $200M+ construction projects",
-      "source": "site"
-    },
-    {
-      "claim": "UMG pipeline over 5,000+ playlists and 100,000+ tracks cut A&R research from 14 days to 8 minutes; found rival labels in 20% more editorial playlists",
-      "source": "site"
-    },
-    {
-      "claim": "Norstella RAG system analyzed 500+ pages in 2 minutes and cut flash-report generation from 8 hours to 15 minutes",
-      "source": "site"
-    },
-    {
-      "claim": "Flash Report AI retrieval tuning over 10,000+ chunks cut token cost about 60%",
-      "source": "site"
-    },
-    {
       "claim": "Stone Scraper cut manual extraction by up to 90%",
-      "source": "site"
-    },
-    {
-      "claim": "Longitude Capital: recommended against funding a $100M+ medtech investment, citing 3 risks, at a $1.7B AUM fund",
       "source": "site"
     },
     {
