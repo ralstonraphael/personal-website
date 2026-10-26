@@ -35,7 +35,8 @@ if (!CONTACT_EMAIL) throw new Error("identity.contact has no email address.");
 const FALLBACK = `I can't answer that reliably right now. You can email Ralston at ${CONTACT_EMAIL}.`;
 
 // Answer-text guard, computed once. Numbers are digit runs with commas removed. The allowed
-// set is every number in the approved slice's text (not dates, ids, years or evidence URLs)
+// set is every number in the approved slice's text (not dates, ids, years or evidence URLs),
+// the years named in its dates and year fields,
 // plus the numbers in the question.
 const NUMBER = /\d[\d,]*(\.\d+)?/g;
 const NUMBER_WORD =
@@ -49,7 +50,15 @@ function* sliceStrings(v: unknown): Generator<string> {
 const numbersIn = (text: string): string[] => (text.match(NUMBER) ?? []).map((n) => n.replace(/,/g, ""));
 const wordsIn = (text: string): string[] => (text.match(NUMBER_WORD) ?? []).map((w) => w.toLowerCase().replace(/ /g, "-"));
 const SLICE_TEXT = [...sliceStrings(slice)].join("\n");
-const SLICE_NUMBERS = new Set(numbersIn(SLICE_TEXT));
+// Years in approved dates/year fields are facts too ("since 2026"); month fragments like the
+// "10" in "2026-10" are not, so they can't license a made-up "10 days".
+function* sliceYears(v: unknown, key = ""): Generator<string> {
+  if ((key === "dates" || key === "year") && (typeof v === "string" || typeof v === "number")) {
+    yield* (String(v).match(/\b(?:19|20)\d{2}\b/g) ?? []);
+  } else if (Array.isArray(v)) for (const x of v) yield* sliceYears(x, key);
+  else if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) yield* sliceYears(x, k);
+}
+const SLICE_NUMBERS = new Set([...numbersIn(SLICE_TEXT), ...sliceYears(slice)]);
 const SLICE_WORDS = new Set(wordsIn(SLICE_TEXT));
 const MARKERS: Array<(text: string) => boolean> = (profile.pendingClaims ?? []).flatMap((c: any) =>
   (c.markers ?? []).map((m: unknown) => {
