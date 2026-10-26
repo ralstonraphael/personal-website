@@ -391,8 +391,13 @@ test("a numbered list with no other numbers passes", async () => {
 test("a fabricated duration is rejected even though 2026-10 is in a dates field", async () => {
   const r = await say("He built it in 10 days.");
   assertFallback(r.body, "ungrounded_number");
-  const y = await say("He started it in 2026.");
-  assertFallback(y.body, "ungrounded_number");
+});
+
+test("years from approved dates are allowed; other years are not", async () => {
+  const ok = await say("He has been at Gumloop since 2026.");
+  assert.equal(ok.body.error, undefined);
+  const bad = await say("He has done this since 2019.");
+  assertFallback(bad.body, "ungrounded_number");
 });
 
 // --- the HTTP handlers ----------------------------------------------------------
