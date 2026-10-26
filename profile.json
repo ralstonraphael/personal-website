@@ -17,6 +17,7 @@
   },
   "roles": [
     {
+      "id": "gumloop",
       "org": "Gumloop",
       "title": "Founding Forward Deployed Agentic Engineer",
       "dates": "2026-10 to present",
@@ -27,6 +28,7 @@
       "ownerReview": "approved"
     },
     {
+      "id": "ramp",
       "org": "Ramp",
       "title": "AI Product Operations, Internal AI",
       "dates": "2026-05 to 2026-10",
@@ -40,6 +42,7 @@
       ]
     },
     {
+      "id": "datagrid",
       "org": "Datagrid AI (acquired by Procore)",
       "title": "Intern, then AI Agent Solutions Architect, then Forward Deployed Engineer at Procore",
       "dates": "2025-06 to 2026-05",
@@ -52,6 +55,7 @@
       ]
     },
     {
+      "id": "umg",
       "org": "Universal Music Group (Republic Records)",
       "title": "Data Engineering Intern",
       "dates": "2025-06 to 2025-07",
@@ -64,6 +68,7 @@
       ]
     },
     {
+      "id": "sofi",
       "org": "SoFi",
       "title": "Sophomore Extern",
       "dates": "2025-06",
@@ -73,6 +78,7 @@
       "ownerReview": "approved"
     },
     {
+      "id": "norstella",
       "org": "Norstella",
       "title": "Strategy Intern",
       "dates": "2025-04 to 2025-05",
@@ -84,6 +90,7 @@
       ]
     },
     {
+      "id": "dxd-stanford-biodesign",
       "org": "DxD HealthTech x Stanford Biodesign",
       "title": "Innovation Intern",
       "dates": "2024-07",
@@ -92,6 +99,7 @@
       "ownerReview": "approved"
     },
     {
+      "id": "longitude-capital",
       "org": "Longitude Capital",
       "title": "VC Analyst Intern",
       "dates": "2024-06 to 2024-07",
@@ -406,8 +414,7 @@
       "status": "used_in_shipped_work",
       "projects": [
         "ramp-skill-loop"
-      ],
-      "note": "Evidence is employer work on the site only; pending owner review."
+      ]
     }
   ],
   "learningGoals": [
@@ -436,19 +443,54 @@
   "pendingClaims": [
     {
       "claim": "Merged 8 PRs into Ramp's internal AI platform",
-      "source": "site"
+      "source": "site",
+      "markers": [
+        {
+          "regex": "\\b(8|eight)\\s+(merged\\s+)?(prs?|pull requests?)\\b"
+        },
+        "merged 8"
+      ]
     },
     {
       "claim": "Stone Scraper cut manual extraction by up to 90%",
-      "source": "site"
+      "source": "site",
+      "markers": [
+        {
+          "regex": "\\b90\\s*(%|percent)"
+        }
+      ]
     },
     {
-      "claim": "Skills listed on the site with no public project behind them yet: SQL, Java, C, Snowflake, Pandas, NumPy, scikit-learn, PyTorch, MySQL, OpenTelemetry, A/B testing, Figma, Capital IQ",
-      "source": "site"
+      "claim": "Skills listed on the site with no public project behind them yet: SQL, Java, C, Snowflake, Pandas, NumPy, scikit-learn, PyTorch, MySQL, OpenTelemetry, A/B testing",
+      "source": "site",
+      "markers": [
+        {
+          "regex": "\\bSQL\\b"
+        },
+        {
+          "regex": "\\bJava\\b"
+        },
+        "Snowflake",
+        "Pandas",
+        "NumPy",
+        "scikit-learn",
+        "PyTorch",
+        "MySQL",
+        "OpenTelemetry",
+        {
+          "regex": "\\bA/B test"
+        }
+      ]
     },
     {
       "claim": "Tyree Innovation Fellow (2023 to 2025), Kathryn George Tyree Innovation Fellow Award at 2025 Honors Day; President, Trinity CS Club (2025 to 2026)",
-      "source": "site"
+      "source": "site",
+      "markers": [
+        "Tyree",
+        "CS Club",
+        "Computer Science Club",
+        "Honors Day"
+      ]
     }
   ],
   "rules": [

@@ -1,0 +1,1 @@
+{"name":"personal-website","private":true,"type":"module","scripts":{"test":"node --test","validate":"node scripts/validate-profile.mjs"}}
