@@ -13,14 +13,14 @@ async function ask(page, text) {
 
 test('answer and evidence chips render with profile names', async ({ page }, info) => {
   await page.route(API, (r) => r.fulfill(ok({
-    answer: 'Yes. He built a scraper that pulls stone prices.',
+    answer: 'Stone Scraper turns web pages into structured data with local models.',
     evidence: ['stone-scraper', 'ramp', 'identity', 'notYet', 'learningGoals', 'mystery-id'],
     refused: false,
   })));
   await page.goto(PAGE);
   await ask(page, 'Has he built anything with RAG?');
   const answer = page.locator('#answer');
-  await expect(answer).toContainText('Yes. He built a scraper that pulls stone prices.');
+  await expect(answer).toContainText('Stone Scraper turns web pages into structured data with local models.');
   for (const name of ['Stone Scraper', 'Ramp', 'Profile', 'Not yet list', 'Learning goals', 'mystery-id']) {
     await expect(answer.locator('.chip', { hasText: name })).toHaveCount(1);
   }
