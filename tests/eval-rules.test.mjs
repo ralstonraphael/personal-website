@@ -107,7 +107,10 @@ test("profileText keeps text fields and drops dates, ids, years and URLs", () =>
   const text = profileText({ roles: [{ id: "r2026", dates: "2026-10 to present", scope: "70+ agents" }], projects: [{ year: 2025, evidence: ["https://x/10"], whatIsThis: "a 6,000+ person rollout" }] });
   assert.match(text, /70\+ agents/);
   assert.match(text, /6,000\+/);
-  assert.doesNotMatch(text, /2026|2025|x\/10/);
+  assert.doesNotMatch(text, /x\/10/);
+  // Years from dates and year fields are facts ("since 2026"); month fragments are not.
+  assert.ok(numbersIn(text).includes("2026") && numbersIn(text).includes("2025"));
+  assert.ok(!numbersIn(text).includes("10"));
 });
 
 test("list ordinals are not numbers; e.g. does not split a sentence", () => {
