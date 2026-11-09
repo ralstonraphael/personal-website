@@ -107,7 +107,7 @@ export function rateLimiterSize(): number {
   return hits.size;
 }
 
-function allowedOrigins(env: Record<string, string | undefined>): string[] {
+export function allowedOrigins(env: Record<string, string | undefined>): string[] {
   return (env.ALLOWED_ORIGINS || DEFAULT_ORIGINS).split(",").map((s) => s.trim()).filter(Boolean);
 }
 
@@ -227,7 +227,7 @@ export async function askCore(input: AskInput, deps: AskDeps): Promise<AskResult
 
 // --- Vercel Web handlers ------------------------------------------------------
 
-function cors(origin: string | null): Record<string, string> {
+export function cors(origin: string | null): Record<string, string> {
   const h: Record<string, string> = { Vary: "Origin" };
   if (origin && allowedOrigins(process.env).includes(origin)) h["Access-Control-Allow-Origin"] = origin;
   return h;
