@@ -40,6 +40,16 @@
       </div>
     </form>
 
+    <section class="ask-voice" aria-labelledby="voice-h">
+      <h2 id="voice-h">Or ask out loud</h2>
+      <div class="ask-row ask-voice-row">
+        <button type="button" class="ask-btn ask-mic" id="mic-btn" aria-pressed="false">Record a question</button>
+        <label class="ask-file mono" for="clip">or pick a recording <input type="file" id="clip" accept="audio/*" /></label>
+      </div>
+      <p class="ask-heard mono" id="heard" aria-live="polite"></p>
+      <audio id="player" controls hidden></audio>
+    </section>
+
     <div class="ask-answer" id="answer" aria-live="polite"></div>
   </main>
 

@@ -127,3 +127,79 @@ if (!api) {
   button.disabled = true;
   say("The chat isn't connected yet. Email Ralston at");
 }
+
+// --- voice: record or pick a clip, POST the audio to /api/voice, show what was heard, play the answer.
+// The browser sends only audio; the key and the provider stay on the server.
+const mic = document.getElementById('mic-btn');
+const picker = document.getElementById('clip');
+const heardLine = document.getElementById('heard');
+const player = document.getElementById('player');
+
+export function voiceUrlFor(askUrl) {
+  return (askUrl ?? '').replace(/\/api\/ask\/?$/, '/api/voice');
+}
+const voiceApi = voiceUrlFor(api);
+
+async function sendAudio(blob) {
+  if (pending || !voiceApi) return;
+  pending = true;
+  mic.disabled = true;
+  heardLine.textContent = 'Listening to your recording…';
+  player.hidden = true;
+  try {
+    const res = await fetch(voiceApi, { method: 'POST', headers: { 'content-type': blob.type || 'audio/webm' }, body: blob });
+    const body = await res.json().catch(() => ({}));
+    if (body.error === 'empty_transcript') {
+      heardLine.textContent = '';
+      note("I didn't catch that. Try again a little closer to the microphone.");
+    } else if (res.status === 415) {
+      heardLine.textContent = '';
+      note('That file type is not supported. Try a .wav, .mp3, .m4a or .webm recording.');
+    } else if (typeof body.answer === 'string' && body.answer) {
+      heardLine.textContent = `Heard: “${body.transcript}”`;
+      await show(body.error ? { answer: body.answer } : body);
+      if (body.audio_b64) {
+        player.src = `data:${body.audio_type || 'audio/mpeg'};base64,${body.audio_b64}`;
+        player.hidden = false;
+        player.play().catch(() => {});
+      }
+    } else if (MESSAGES[body.error]) {
+      heardLine.textContent = '';
+      note(MESSAGES[body.error]);
+    } else {
+      heardLine.textContent = '';
+      unavailable();
+    }
+  } catch {
+    heardLine.textContent = '';
+    unavailable();
+  } finally {
+    pending = false;
+    mic.disabled = false;
+  }
+}
+
+let recorder = null;
+mic.addEventListener('click', async () => {
+  if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const chunks = [];
+    recorder = new MediaRecorder(stream);
+    recorder.addEventListener('dataavailable', (e) => chunks.push(e.data));
+    recorder.addEventListener('stop', () => {
+      stream.getTracks().forEach((t) => t.stop());
+      mic.setAttribute('aria-pressed', 'false');
+      mic.textContent = 'Record a question';
+      sendAudio(new Blob(chunks, { type: recorder.mimeType.split(';')[0] || 'audio/webm' }));
+    });
+    recorder.start();
+    mic.setAttribute('aria-pressed', 'true');
+    mic.textContent = 'Stop and ask';
+  } catch {
+    note('The microphone is not available here. Pick a recording instead.');
+  }
+});
+picker.addEventListener('change', () => { if (picker.files[0]) sendAudio(picker.files[0]); picker.value = ''; });
+
+if (!voiceApi) { mic.disabled = true; picker.disabled = true; }
