@@ -82,6 +82,12 @@ test("spokenText keeps a short answer whole and does not split on decimals", () 
   assert.equal(spokenText("It cost $0.05 per turn. That is all."), "It cost $0.05 per turn. That is all.");
 });
 
+test("spokenText reads an email address as words, so the speech model doesn't mangle 2005", () => {
+  const s = spokenText("For clarification, email him at ralstone2005@gmail.com.");
+  assert.equal(s, "For clarification, email him at ralstone 2005 at gmail dot com.");
+  assert.equal(spokenText("Write to first.last99@my-school.edu today."), "Write to first dot last 99 at my-school dot edu today.");
+});
+
 test("the speech call speaks the trimmed answer, not the raw one", async () => {
   const long = "First. Second. Third. Fourth.";
   const fetch = provider({ chat: () => answered({ answer: long, evidence: [realId], refused: false }) });
