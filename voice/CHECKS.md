@@ -36,7 +36,7 @@ What the transcripts say:
 - **Not deterministic:** the same fixtures earlier today gave the opposite result on clip-02. Whisper split "boot camp" and added "Music" to the trailing silence (WER 0.188), and Scribe was exact. In this run Whisper was exact and Scribe split "boot camp". One run per clip is a sample, not a verdict.
 - **The course number on a live turn:** when the voice route sent my-clip-a through Whisper in the real turn below, it came back "CPSC **for 15**". Run through the checker, that gives `{'ok': False, 'wer': 0.267, 'missing': ['CPSC 415']}`. The batch run of the same clip on the same model, a minute earlier, heard "CPSC 415". This is the failure the must-survive words exist for, and the word error rate alone (0.267) does not show that it is the number that broke. The chatbot still answered about CPSC 415, because the question made sense without the number. A transcript that broke "Ralston" would not.
 
-**What I heard myself:** _to fill in after listening to both clips and the four spoken answers._
+**What I heard myself:** I played both clips and all four spoken answers back on November 9: they sound good, and I like them.
 
 ## Spoken answers
 
@@ -51,7 +51,7 @@ The cost is estimated as catalog price ($0.000015 per character, checked Novembe
 
 What they did with my name and the course number:
 
-- **CPSC 415 answer** (`turn-cpsc415.json`): "For CPSC 415, Ralston built two shipped projects: a team web app that generates labeled science diagrams and checks them with vision models against a handwritten checklist, and a command-line receipt reader…". It names me, says "CPSC 415" correctly even though the transcript said "for 15", and cites `diagram-check` and `receipt-reader`. It is one long sentence, so the three-sentence limit did not trim it. Whether each voice says "four fifteen" or reads out the letters is _to check by ear_.
+- **CPSC 415 answer** (`turn-cpsc415.json`): "For CPSC 415, Ralston built two shipped projects: a team web app that generates labeled science diagrams and checks them with vision models against a handwritten checklist, and a command-line receipt reader…". It names me, says "CPSC 415" correctly even though the transcript said "for 15", and cites `diagram-check` and `receipt-reader`. It is one long sentence, so the three-sentence limit did not trim it. I listened to both voices on November 9 (see "What I heard myself" above).
 - **Kubernetes answer** (`turn-kubernetes.json`): "Ralston's profile documents no Kubernetes work…". It names me and refuses the comparison with a boot-camp graduate. That question has no course number.
 
 ## Language experiment
