@@ -4,3 +4,5 @@ node_modules/
 .vercel/
 test-results/
 .DS_Store
+.venv/
+__pycache__/
