@@ -76,3 +76,35 @@ Design estimate: at most 2,000 input tokens and 250 output tokens per question. 
 ## Out of scope for this milestone
 
 No chatbot code, API credentials, new homepage controls, visual redesign, or unreviewed biographical claims are part of the `intent-spec` tag. The repository already had a website before these artifacts; this spec does not pretend the prior code was written after the intent.
+
+## Week 7: spoken interface
+
+Intent: `intent/voice.md`. Two components, both called from the server only.
+
+### Transcriber
+
+- **What it does:** Turns a visitor's recording into the question text, and records the text, the audio seconds, and the cost from the reply for each clip.
+- **Language:** Python 3 with the `openrouter` SDK for the eval tools in `voice/` (`voice/transcribe.py`, the checker, the tests). **Why:** it is the course's example path, the SDK carries both audio endpoints, and the checker is reused rather than rewritten. The live route is TypeScript in `api/voice.ts` with plain `fetch`, next to `api/ask.ts`, because the server is a Vercel Node function and must call the same `askCore` answer function as the typed path. Both send the same request shape to `POST /api/v1/audio/transcriptions`.
+- **Model:** default `openai/whisper-large-v3-turbo` (priced per audio second, cheapest serious transcriber); comparison `elevenlabs/scribe-v2` (about 18x the price; read every course fixture correctly). Both run on every clip in the eval.
+
+### Speaker
+
+- **What it does:** Speaks the chatbot's answer, and records characters, bytes, and the estimated cost (the reply is audio bytes with no usage object, so cost = catalog price x characters, marked estimated).
+- **Language:** same split as the transcriber: `voice/speak.py` for the eval, `fetch` in `api/voice.ts` for the route, both to `POST /api/v1/audio/speech`.
+- **Model:** default `microsoft/mai-voice-2.1-flash` with voice `en-US-Harper:MAI-Voice-2.1-Flash`; comparison: the same model with voice `en-US-Jasper:MAI-Voice-2.1-Flash`. **Why:** priced per character, under a second per call in the course rehearsal, and MP3 that transcribers read back correctly. A second voice, not a second model, keeps the comparison on what a visitor hears without tripling the speech cost.
+
+### Dependencies
+
+- `openrouter` (Python SDK, in `voice/requirements.txt`): the transcription and speech calls in the eval tools. **Why:** it wraps both audio endpoints and returns the usage object; no other audio library is needed.
+- No new Node dependency: `api/voice.ts` uses the runtime's `fetch`.
+
+### Behavior to verify (Week 7)
+
+1. An empty or whitespace-only transcript is a failed transcript: the route returns "I didn't catch that." with no chat call and no speech call, and the checker reports `empty: true`, `ok: false`. Neither crashes.
+2. A speech reply whose content type is not `audio/*` is an error. It is never saved to a file or returned as audio; the visitor still gets the transcript and the answer as text, plus the error.
+3. The checker compares a transcript with text a person wrote before the model heard the clip, by word error rate, ignoring case, punctuation, and spacing. Default tolerance 0.15; a clip may state its own tolerance in `expected.json` with a note saying why.
+4. Named words must survive: each clip's `must_contain` (my name, "CPSC 415", "Ramp", "Datagrid") must appear in the transcript, or the clip fails whatever its word error rate.
+5. The spoken answer is at most three sentences, with markdown, list markers, and URLs removed in code before the speech call.
+6. The voice path answers through `askCore`, the same function as the typed path, so the answer guard and held claims apply unchanged.
+7. The key stays on the server: the route's response never contains the key or the provider's URL, and the browser sends only audio (`Content-Type: audio/*`).
+8. Unsupported audio types get a 415, and recordings over 10 MB are refused before any model call.
