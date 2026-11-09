@@ -4,7 +4,7 @@
     "model": "openai/whisper-large-v3-turbo",
     "audio_seconds": 6.38,
     "cost": 2.12454e-05,
-    "seconds": 0.9,
+    "seconds": 0.7,
     "file": "clip-01.wav",
     "check": {
       "ok": true,
@@ -14,26 +14,54 @@
     }
   },
   {
-    "text": " Have you ever deployed anything with Kubernetes?  Be honest, I'm comparing you with a boot camp graduate.  Music",
+    "text": "Have you ever deployed anything with Kubernetes? Be honest, I'm comparing you with a bootcamp graduate.",
     "model": "openai/whisper-large-v3-turbo",
-    "audio_seconds": 8.061,
-    "cost": 2.684313e-05,
-    "seconds": 0.5,
+    "audio_seconds": 8.062,
+    "cost": 2.684646e-05,
+    "seconds": 1.1,
     "file": "clip-02.wav",
     "check": {
       "ok": true,
-      "wer": 0.188,
+      "wer": 0.0,
       "missing": [],
       "empty": false
     }
   },
   {
-    "text": " Tell me about the RAG project from CPSC 415.  How many chunks did the index have and what did a query cost?",
+    "text": "Tell me about the RAG project from CPSC 415. How many chunks did the index have and what did a query cost?",
     "model": "openai/whisper-large-v3-turbo",
     "audio_seconds": 7.708,
     "cost": 2.566764e-05,
     "seconds": 0.9,
     "file": "clip-03.wav",
+    "check": {
+      "ok": true,
+      "wer": 0.0,
+      "missing": [],
+      "empty": false
+    }
+  },
+  {
+    "text": "Hey, hi, my name is Ralston Raphael. What do you build for CPSC 415 this semester?",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 9.26,
+    "cost": 3.08358e-05,
+    "seconds": 2.1,
+    "file": "my-clip-a.wav",
+    "check": {
+      "ok": true,
+      "wer": 0.133,
+      "missing": [],
+      "empty": false
+    }
+  },
+  {
+    "text": "How many laptops did Ralston manage at RAMP, and what did he automate at Datagrid?",
+    "model": "openai/whisper-large-v3-turbo",
+    "audio_seconds": 5.84,
+    "cost": 1.94472e-05,
+    "seconds": 1.7,
+    "file": "my-clip-b.wav",
     "check": {
       "ok": true,
       "wer": 0.0,

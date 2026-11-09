@@ -1,10 +1,10 @@
 [
   {
-    "text": "What programming languages have you shipped code in and which one would you choose for a new web service?",
+    "text": "What programming languages have you shipped code in, and which one would you choose for a new web service?",
     "model": "elevenlabs/scribe-v2",
     "audio_seconds": 6.38,
     "cost": 0.000389888888888818,
-    "seconds": 0.6,
+    "seconds": 0.8,
     "file": "clip-01.wav",
     "check": {
       "ok": true,
@@ -14,15 +14,15 @@
     }
   },
   {
-    "text": "Have you ever deployed anything with Kubernetes? Be honest, I'm comparing you with a bootcamp graduate",
+    "text": "Have you ever deployed anything with Kubernetes? Be honest, I'm comparing you with a boot camp graduate",
     "model": "elevenlabs/scribe-v2",
     "audio_seconds": 8.062,
     "cost": 0.0004926777777776882,
-    "seconds": 0.9,
+    "seconds": 0.6,
     "file": "clip-02.wav",
     "check": {
       "ok": true,
-      "wer": 0.0,
+      "wer": 0.125,
       "missing": [],
       "empty": false
     }
@@ -34,6 +34,34 @@
     "cost": 0.0004710444444443588,
     "seconds": 0.8,
     "file": "clip-03.wav",
+    "check": {
+      "ok": true,
+      "wer": 0.0,
+      "missing": [],
+      "empty": false
+    }
+  },
+  {
+    "text": "Hey. Hi, my name is Ralston Raphael. What do you build for CPSC 415 this semester?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 9.26,
+    "cost": 0.000565888888888786,
+    "seconds": 0.9,
+    "file": "my-clip-a.wav",
+    "check": {
+      "ok": true,
+      "wer": 0.133,
+      "missing": [],
+      "empty": false
+    }
+  },
+  {
+    "text": "How many laptops did Ralston manage at Ramp, and what did he automate at DataGrid?",
+    "model": "elevenlabs/scribe-v2",
+    "audio_seconds": 5.84,
+    "cost": 0.000356888888888824,
+    "seconds": 1.4,
+    "file": "my-clip-b.wav",
     "check": {
       "ok": true,
       "wer": 0.0,

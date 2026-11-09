@@ -1,0 +1,30 @@
+{
+  "transcript": "Hey.  Hi, my name is Ralston Raphael.  What do you build for CPSC for  15 this semester.",
+  "answer": "For CPSC 415, Ralston built two shipped projects: a team web app that generates labeled science diagrams and checks them with vision models against a handwritten checklist, and a command-line receipt reader that uses a vision model for extraction and plain-code arithmetic checks for the totals.",
+  "spoken": "For CPSC 415, Ralston built two shipped projects: a team web app that generates labeled science diagrams and checks them with vision models against a handwritten checklist, and a command-line receipt reader that uses a vision model for extraction and plain-code arithmetic checks for the totals.",
+  "evidence": [
+    "diagram-check",
+    "receipt-reader"
+  ],
+  "refused": false,
+  "audio_type": "audio/mpeg",
+  "tts_error": null,
+  "audio_seconds": 9.26,
+  "cost": {
+    "stt": 3.08358e-05,
+    "chat": 0.00116505,
+    "tts": 0.004425,
+    "tts_is_estimate": true,
+    "total": 0.005621
+  },
+  "seconds": {
+    "stt": 2.673,
+    "chat": 2.336,
+    "tts": 1.142
+  },
+  "models": {
+    "stt": "openai/whisper-large-v3-turbo",
+    "chat": "openai/gpt-5.6-luna",
+    "tts": "microsoft/mai-voice-2.1-flash / en-US-Harper:MAI-Voice-2.1-Flash"
+  }
+}
