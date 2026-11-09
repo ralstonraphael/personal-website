@@ -46,13 +46,14 @@ The cost is estimated as catalog price ($0.000015 per character, checked Novembe
 |---|---|---|---|---|---|---|
 | `answers/answer-cpsc415-harper.mp3` | my-clip-a | en-US-Harper | 295 | 382,560 | $0.004425 | 1.1 |
 | `answers/answer-cpsc415-jasper.mp3` | my-clip-a | en-US-Jasper | 295 | 391,680 | $0.004425 | 1.6 |
-| `answers/answer-harper.mp3` | clip-02 (Kubernetes) | en-US-Harper | 215 | 307,200 | $0.003225 | 1.4 |
-| `answers/answer-jasper.mp3` | clip-02 (Kubernetes) | en-US-Jasper | 215 | 281,760 | $0.003225 | 1.3 |
+| `answers/answer-harper.mp3` | clip-02 (Kubernetes) | en-US-Harper | 223 | 338,880 | $0.003345 | 1.4 |
+| `answers/answer-jasper.mp3` | clip-02 (Kubernetes) | en-US-Jasper | 223 | 284,640 | $0.003345 | 1.2 |
 
 What they did with my name and the course number:
 
 - **CPSC 415 answer** (`turn-cpsc415.json`): "For CPSC 415, Ralston built two shipped projects: a team web app that generates labeled science diagrams and checks them with vision models against a handwritten checklist, and a command-line receipt reader…". It names me, says "CPSC 415" correctly even though the transcript said "for 15", and cites `diagram-check` and `receipt-reader`. It is one long sentence, so the three-sentence limit did not trim it. I listened to both voices on November 9 (see "What I heard myself" above).
 - **Kubernetes answer** (`turn-kubernetes.json`): "Ralston's profile documents no Kubernetes work…". It names me and refuses the comparison with a boot-camp graduate. That question has no course number.
+- **My email, read aloud (found by ear, fixed):** when I listened, both voices read `ralstone2005@gmail.com` as "ralstone twenty zero five". `spokenText` now rewrites an email address as words before the speech call ("ralstone 2005 at gmail dot com"), tests first (`tests/voice.test.mjs`). The page still shows the address as written. I re-spoke both Kubernetes answers (the table above has the new sizes; `turn-kubernetes.json` keeps the original turn) and transcribed them with scribe-v2 as an independent check: both came back as "email him at ralstone2005@gmail.com" exactly, $0.0019 for the two. This is a speech-side version of the transcript lesson: no code could have caught it without someone listening.
 
 ## Language experiment
 
