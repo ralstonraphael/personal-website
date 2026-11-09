@@ -57,3 +57,40 @@ If either is rejected, steps 5 and 8 change; the profile and test-set work does 
 Steps 2 and 4 are independent and can run in parallel: the validator touches only `scripts/` and `tests/`, the questions only `eval/questions.json`. Everything that touches the model (5, 7) waits for the grounding prompt (3), so the prompt is fixed before the eval runs.
 
 **Approved by:** Ralston Raphael, October 26, 2026. Both spec changes approved; profile reviewed (8 site claims approved, 4 held back; reflection fields written by him).
+
+## Week 7: spoken interface
+
+Spec: "Week 7: spoken interface" in `spec.md`.
+
+### Files
+
+- `CLAUDE.md` working rules for Week 7; `.claude/hooks/guard.py` and `.claude/settings.json` (the course guard).
+- `voice/check.py` (word error rate, must-survive words, empty transcript) and `voice/tests/test_check.py` (no key).
+- `voice/transcribe.py`, `voice/speak.py` (eval tools, `openrouter` SDK), `voice/tests/test_eval.py` (billed, skipped without a key).
+- `voice/clips/`: the three course fixtures plus two clips of my own voice (WAV), and `expected.json` written before any model hears them.
+- `voice/transcripts-whisper.json`, `voice/transcripts-scribe.json`, `voice/answers/` (two spoken answers).
+- `api/voice.ts` (`voiceCore` + `POST`) and `tests/voice.test.mjs` (no key, fake fetch).
+- Recorder and file picker on `ask/` (`ask/voice.js`), and a browser check in `tests/browser/`.
+- `voice/CHECKS.md`.
+
+### Order of work
+
+1. Working rules + guard, then this plan approved.
+2. Checker tests (red), checker (green).
+3. Voice route tests (red): empty transcript, non-audio reply, three sentences, key not in response, 415, size cap. Then `api/voice.ts` (green).
+4. Eval tools and the billed eval; record my clips' results in `CHECKS.md`.
+5. Page recorder + browser check; one real turn's three costs.
+
+### Risks
+
+- If the transcriber turns my name into a different word, the chatbot gets a question about someone else and may refuse. The checker's `must_contain` catches it in the eval; on the live page the transcript is shown so the visitor can see it.
+- A visitor holding the button for a minute: transcription is priced per second (about $0.0002 a minute on Whisper), but the size cap (10 MB) and the existing rate limit bound it; the monthly cap on the key is the hard stop.
+- A format the model rejects: the route maps content types to formats and returns 415 for anything else, before any call.
+- MP3 headers with a wrong length truncate transcripts (course rehearsal); my clips are converted to WAV.
+
+### Proof
+
+- **No-key tests** (free, every commit, CI): the checker (word error rate, must-survive words, empty transcript, spacing and case) and the voice route with a fake fetch (behaviors 1, 2, 5, 6, 7, 8). They prove the code's decisions, not the models'.
+- **Billed eval** (run once, by hand): five clips (three fixtures, two of mine) on two transcription models = 10 transcriptions, about $0.003; two speech calls, about $0.01; one real voice turn, about $0.006; the browser check's turn, about $0.006. **Total under $0.05.** It proves what the models actually heard and what one turn costs.
+
+**Approved by:** Ralston Raphael, November 9, 2026
