@@ -23,9 +23,17 @@ export const FORMATS: Record<string, string> = {
   "audio/x-wav": "wav", "audio/wave": "wav", "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/flac": "flac",
 };
 
+// An email address said as words: the speech model read "ralstone2005" as "20 zero 5"
+// (heard November 9), and "gmail.com." would otherwise end a sentence early.
+function spokenEmail(_: string, local: string, domain: string): string {
+  const say = (part: string) => part.replace(/([A-Za-z])(\d)/g, "$1 $2").replace(/(\d)([A-Za-z])/g, "$1 $2");
+  return `${local.split(".").map(say).join(" dot ")} at ${domain.split(".").join(" dot ")}`;
+}
+
 // At most three sentences, with markdown, list markers and URLs removed, for the speech call.
 export function spokenText(answer: string): string {
   const plain = answer
+    .replace(/\b([A-Za-z0-9_%+-]+(?:\.[A-Za-z0-9_%+-]+)*)@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,})\b/g, spokenEmail)
     .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/https?:\/\/\S+/g, "")
     .replace(/^[ \t]*(?:[-*+]|\d+[.)])[ \t]+/gm, "")
