@@ -108,3 +108,30 @@ Intent: `intent/voice.md`. Two components, both called from the server only.
 6. The voice path answers through `askCore`, the same function as the typed path, so the answer guard and held claims apply unchanged.
 7. The key stays on the server: the route's response never contains the key or the provider's URL, and the browser sends only audio (`Content-Type: audio/*`).
 8. Unsupported audio types get a 415, and recordings over 10 MB are refused before any model call.
+
+## Week 8: one tool
+
+Intent: `intent/tools.md`. One component: the tool loop inside the chatbot's answer function.
+
+### The tool loop
+
+- **What it does:** Sends the visitor's question to the model with one tool schema attached. When the model asks for `recent_commits`, our code parses and validates the arguments, calls GitHub, and sends the result back as a `tool` message. It repeats until the model answers or the step cap is reached, then checks the answer against what the tools returned and returns the answer together with the trace.
+- **Language:** TypeScript, in `tools/` (`tools/github.ts`, `tools/loop.ts`, `tools/check.ts`), imported by `api/ask.ts`, with plain `fetch` to OpenRouter and to GitHub. **Why:** the loop has to run inside `askCore`, which is TypeScript in the Vercel function; the typed and voice paths both call it. The course example is Python with the `openrouter` SDK; I considered following it, but then the loop would exist twice (Python for the lab, TypeScript for the site) and the eval would test a copy instead of the code visitors reach. Node 25 runs the `.ts` files directly; no build step and no new dependency.
+- **Model:** class model `minimax/minimax-m3` and comparison `openai/gpt-5.6-luna` (the chatbot's current default). Both list `tools` and `response_format` in OpenRouter's `supported_parameters` (checked November 16, 2026). Prices per million tokens: M3 $0.30 in / $1.20 out, Luna $0.20 / $1.20. **Why:** the class model is the one the course's tool-loop example was rehearsed on; Luna is what the chatbot already runs, so the comparison says whether the site's model handles tools as well. `PORTFOLIO_MODEL` picks the model, as before.
+- **Interfaces:** `askCore` returns its existing fields plus `trace` (one entry per tool call: step, tool, arguments, result, seconds), `steps`, `stopped_by` (`answer` or `cap`), and `check` (`supported`, `unsupported[]`). `usage.cost` becomes the sum over every chat call in the turn.
+- **Dependencies:** none new. GitHub's REST API, unauthenticated (a `GITHUB_TOKEN` in the environment is used if present).
+
+### Behavior to verify (Week 8)
+
+1. **The schema the model sees.** Every chat request carries `tools: [recent_commits]`: name `recent_commits`; description "The most recent commits in one of Ralston's public GitHub repositories. Use this before saying anything about what he has worked on lately, and say plainly when a repository is not found."; arguments `{ repo: string (repository name only, no owner), count?: integer 1–10, default 5 }`, `repo` required, no other properties.
+2. **Arguments are validated in code.** `arguments` arrives as a JSON string and is parsed by our code. Not JSON, not an object, a missing `repo`, an extra property, a wrong type, a `repo` that is not a plain repository name (`^[A-Za-z0-9._-]{1,100}$`), or a `count` outside 1–10 each return `{ "error": "<what was wrong and what to send instead>" }` as the tool result. The loop continues; nothing throws.
+3. **Unknown tool.** A call to any name other than `recent_commits` returns `{ "error": "unknown tool '<name>'; the tools are ['recent_commits']" }` as the result, and the loop continues.
+4. **GitHub failures are results.** 404 → `{ "error": "no public repository named ralstonraphael/<repo>" }`; 403 or 429 → a rate-limit error; a network error or timeout → "could not reach GitHub". The owner is always `ralstonraphael`, set in code.
+5. **The step cap.** At most 4 chat calls per question. If the 4th reply still asks for a tool, the loop stops; the answer is the program's sentence "I couldn't finish answering that in 4 steps. You can email Ralston at <contact email>.", `refused: true`, `stopped_by: "cap"`, and the trace shows every call. The model's last reply is never shown.
+6. **Side effects are held.** The loop has a set of side-effect tool names. A call to one is recorded in `pending` and returns `{ "error": "<tool> has a side effect and needs a person's confirmation first", "pending": {...} }`; the function is not run. `recent_commits` is read-only, so the set is empty in production; the test registers a stub side-effect tool to prove the gate.
+7. **The claim check, in code.** After the loop, every commit SHA (7+ hex characters), every date (`YYYY-MM-DD`), and every `ralstonraphael/<repo>` slug in the answer must appear in a tool result from this turn. A repository the tool reported as not found may be named only in a not-found answer: if the answer pairs it with commits or dates, it is flagged. A flagged answer is replaced by the fallback, with `check.unsupported` saying why. Numbers that appear in tool results are added to the existing answer guard's allowed set for this turn, so a real commit date is not mistaken for an invented number.
+8. **Evidence.** A non-refusal answer may cite `tool:recent_commits` as evidence only if that tool returned commits in this turn; profile evidence ids work as before.
+9. **The trace goes out with the answer**, on both the typed (`/api/ask`) and voice (`/api/voice`) routes. The trace never contains the OpenRouter key.
+10. **Cost per question.** The eval records each question's summed `usage.cost`, steps, and seconds, per model, and the totals for a question with a tool and without one.
+
+**Approved by:** Ralston Raphael, 2026-11-16
