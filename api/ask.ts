@@ -12,6 +12,9 @@ type AskResult = { status: number; body: Record<string, unknown>; headers?: Reco
 const DEFAULT_MODEL = "openai/gpt-5.6-luna";
 const DEFAULT_ORIGINS = "https://ralstonraphael.github.io";
 const MAX_QUESTION = 500;
+// Per-model output budget. M3 keeps hidden reasoning on and, after a tool result, spent all 600
+// tokens reasoning and returned no answer (first Week 8 eval run, November 16). Luna needs 600.
+const MAX_TOKENS: Record<string, number> = { "minimax/minimax-m3": 3000 };
 const MAX_ANSWER = 1500;
 const RATE_LIMIT = 10;
 const RATE_WINDOW_MS = 60_000;
@@ -190,7 +193,7 @@ export async function askCore(input: AskInput, deps: AskDeps): Promise<AskResult
           messages,
           tools: schemasOf(),
           temperature: 0.2,
-          max_tokens: 600,
+          max_tokens: MAX_TOKENS[model] ?? 600,
           response_format: { type: "json_object" },
           usage: { include: true },
         }),
