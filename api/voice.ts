@@ -123,6 +123,7 @@ export async function voiceCore(input: VoiceInput, deps: VoiceDeps): Promise<Voi
       answer,
       spoken,
       evidence: asked.body.evidence ?? [],
+      trace: asked.body.trace ?? [],
       refused: asked.body.refused ?? true,
       audio_b64: audioB64,
       audio_type: audioType,

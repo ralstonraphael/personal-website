@@ -226,6 +226,11 @@ test("a valid reply passes through with model and usage", async () => {
     refused: false,
     model: "openai/gpt-5.6-luna",
     usage: { prompt_tokens: 1200, completion_tokens: 80, cost: 0.0004 },
+    // Week 8: the tool loop's trace and claim check travel with every answer.
+    trace: [],
+    steps: 1,
+    stopped_by: "answer",
+    check: { supported: true, unsupported: [] },
   });
 });
 

@@ -2,6 +2,8 @@
 // askCore is pure apart from the injected fetch, so the tests and the eval runner can import it.
 import { readFileSync } from "node:fs";
 import { approvedSlice, evidenceIds } from "../lib/profile.mjs";
+import { MAX_STEPS, runLoop, schemasOf } from "../tools/loop.ts";
+import { checkClaims } from "../tools/check.ts";
 
 type AskInput = { question: unknown; origin?: string | null; ip?: string };
 type AskDeps = { fetch: typeof fetch; env: Record<string, string | undefined>; now?: () => number };
@@ -33,6 +35,8 @@ const SYSTEM_PROMPT = promptBody(grounding) + "\n\nPROFILE:\n" + JSON.stringify(
 const CONTACT_EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/.exec(String(slice.identity?.contact ?? ""))?.[0];
 if (!CONTACT_EMAIL) throw new Error("identity.contact has no email address.");
 const FALLBACK = `I can't answer that reliably right now. You can email Ralston at ${CONTACT_EMAIL}.`;
+// What the visitor sees when the model is still asking for tools at the step cap: ours, not the model's.
+const CAP_SENTENCE = `I couldn't finish answering that in ${MAX_STEPS} steps. You can email Ralston at ${CONTACT_EMAIL}.`;
 
 // Answer-text guard, computed once. Numbers are digit runs with commas removed. The allowed
 // set is every number in the approved slice's text (not dates, ids, years or evidence URLs),
@@ -71,9 +75,10 @@ const MARKERS: Array<(text: string) => boolean> = (profile.pendingClaims ?? []).
   }),
 );
 
-function answerGuard(answer: string, question: string): "ungrounded_number" | "held_claim" | null {
-  const qNumbers = new Set(numbersIn(question));
-  const qWords = new Set(wordsIn(question));
+// toolText: this turn's tool results. A real commit date or SHA is a fact for this answer only.
+function answerGuard(answer: string, question: string, toolText = ""): "ungrounded_number" | "held_claim" | null {
+  const qNumbers = new Set([...numbersIn(question), ...numbersIn(toolText)]);
+  const qWords = new Set([...wordsIn(question), ...wordsIn(toolText)]);
   const body = answer.replace(/^[ \t]*\d+[.)][ \t]+/gm, "");
   if (numbersIn(body).some((n) => !SLICE_NUMBERS.has(n) && !qNumbers.has(n))) return "ungrounded_number";
   if (wordsIn(body).some((w) => !SLICE_WORDS.has(w) && !qWords.has(w))) return "ungrounded_number";
@@ -81,9 +86,9 @@ function answerGuard(answer: string, question: string): "ungrounded_number" | "h
   return null;
 }
 
-const failure = (status: number, error: string): AskResult => ({
+const failure = (status: number, error: string, extra: Record<string, unknown> = {}): AskResult => ({
   status,
-  body: { error, answer: FALLBACK, evidence: [], refused: true },
+  body: { error, answer: FALLBACK, evidence: [], refused: true, ...extra },
 });
 
 // Per-ip request times. Serverless instances each have their own memory and are recycled,
@@ -139,14 +144,14 @@ function firstJsonObject(text: string): unknown {
 }
 
 type Reply = { answer: string; evidence: string[]; refused: boolean };
-function validReply(content: unknown): Reply | null {
+function validReply(content: unknown, toolIds: Set<string> = new Set()): Reply | null {
   if (typeof content !== "string") return null;
   const o = firstJsonObject(content) as Record<string, unknown> | undefined;
   if (!o || typeof o !== "object" || Array.isArray(o)) return null;
   const { answer, evidence, refused } = o;
   if (typeof answer !== "string" || answer.trim() === "" || answer.length > MAX_ANSWER) return null;
   if (typeof refused !== "boolean") return null;
-  if (!Array.isArray(evidence) || !evidence.every((e) => typeof e === "string" && VALID_IDS.has(e))) return null;
+  if (!Array.isArray(evidence) || !evidence.every((e) => typeof e === "string" && (VALID_IDS.has(e) || toolIds.has(e)))) return null;
   if (!refused && evidence.length === 0) return null;
   return { answer, evidence: evidence as string[], refused };
 }
@@ -168,61 +173,89 @@ export async function askCore(input: AskInput, deps: AskDeps): Promise<AskResult
   if (!key) return failure(503, "not_configured");
 
   const model = env.PORTFOLIO_MODEL || DEFAULT_MODEL;
-  let res: Response;
+  // One billed chat call, with the tool schemas attached. Throws a ChatError the caller maps.
+  const send = async (messages: unknown[]): Promise<any> => {
+    let res: Response;
+    try {
+      res = await deps.fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${key}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": "https://ralstonraphael.github.io/personal-website/",
+          "X-Title": "Ralston's portfolio",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          tools: schemasOf(),
+          temperature: 0.2,
+          max_tokens: 600,
+          response_format: { type: "json_object" },
+          usage: { include: true },
+        }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch (err) {
+      throw new ChatError(isTimeout(err) ? "timeout" : "provider_error");
+    }
+    if (!res.ok) throw new ChatError("provider_error");
+    try {
+      return await res.json();
+    } catch (err) {
+      throw new ChatError(isTimeout(err) ? "timeout" : "invalid_reply");
+    }
+  };
+
+  let loop;
   try {
-    res = await deps.fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://ralstonraphael.github.io/personal-website/",
-        "X-Title": "Ralston's portfolio",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: q },
-        ],
-        temperature: 0.2,
-        max_tokens: 600,
-        response_format: { type: "json_object" },
-        usage: { include: true },
-      }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+    loop = await runLoop({
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: q },
+      ],
+      send,
+      toolDeps: { fetch: deps.fetch, env },
     });
   } catch (err) {
-    const name = (err as { name?: string } | null)?.name;
-    return name === "TimeoutError" || name === "AbortError" ? failure(504, "timeout") : failure(502, "provider_error");
+    const kind = err instanceof ChatError ? err.kind : "provider_error";
+    return kind === "timeout" ? failure(504, "timeout") : kind === "invalid_reply" ? failure(200, "invalid_reply") : failure(502, "provider_error");
   }
-  if (!res.ok) return failure(502, "provider_error");
+  const usage = { prompt_tokens: loop.promptTokens, completion_tokens: loop.completionTokens, cost: loop.cost };
+  const meta = { model, usage, trace: loop.trace, steps: loop.steps, stopped_by: loop.stoppedBy };
+  if (loop.stoppedBy === "cap") {
+    return { status: 200, body: { error: "step_cap", answer: CAP_SENTENCE, evidence: [], refused: true, ...meta, check: null } };
+  }
 
-  let data: any;
-  try {
-    data = await res.json();
-  } catch (err) {
-    const name = (err as { name?: string } | null)?.name;
-    return name === "TimeoutError" || name === "AbortError" ? failure(504, "timeout") : failure(200, "invalid_reply");
-  }
-  const reply = validReply(data?.choices?.[0]?.message?.content);
-  if (!reply) return failure(200, "invalid_reply");
-  const blocked = answerGuard(reply.answer, q);
-  if (blocked) return failure(200, blocked);
+  const toolIds = new Set(
+    loop.trace.some((t) => t.tool === "recent_commits" && Array.isArray(t.result.commits) && t.result.commits.length > 0)
+      ? ["tool:recent_commits"]
+      : [],
+  );
+  const reply = validReply(loop.content, toolIds);
+  if (!reply) return failure(200, "invalid_reply", meta);
+  // The claim check runs first: it names what the tools did not return, which is the more useful reason.
+  const check = checkClaims(reply.answer, loop.trace);
+  if (!check.supported) return failure(200, "unsupported_claim", { ...meta, check });
+  const blocked = answerGuard(reply.answer, q, JSON.stringify(loop.trace.map((t) => t.result)));
+  if (blocked) return failure(200, blocked, { ...meta, check });
 
   return {
     status: 200,
-    body: {
-      answer: reply.answer,
-      evidence: reply.evidence,
-      refused: reply.refused,
-      model,
-      usage: {
-        prompt_tokens: data?.usage?.prompt_tokens ?? null,
-        completion_tokens: data?.usage?.completion_tokens ?? null,
-        cost: data?.usage?.cost ?? null,
-      },
-    },
+    body: { answer: reply.answer, evidence: reply.evidence, refused: reply.refused, ...meta, check },
   };
+}
+
+class ChatError extends Error {
+  kind: "timeout" | "provider_error" | "invalid_reply";
+  constructor(kind: "timeout" | "provider_error" | "invalid_reply") {
+    super(kind);
+    this.kind = kind;
+  }
+}
+function isTimeout(err: unknown): boolean {
+  const name = (err as { name?: string } | null)?.name;
+  return name === "TimeoutError" || name === "AbortError";
 }
 
 // --- Vercel Web handlers ------------------------------------------------------
