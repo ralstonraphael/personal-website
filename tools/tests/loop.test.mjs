@@ -245,7 +245,7 @@ test("tool evidence is only accepted when the tool returned commits this turn", 
 // result and returned no content (finish_reason "length"). It keeps reasoning on, with more room.
 test("minimax-m3 gets room to reason after a tool result; luna keeps 600", async () => {
   const sent = [];
-  const fetch = async (url, init) => {
+  const fetch = async (_url, init) => {
     sent.push(JSON.parse(init.body));
     return new Response(JSON.stringify(answer(JSON.stringify({ answer: "ok", evidence: [], refused: true }))), { status: 200 });
   };

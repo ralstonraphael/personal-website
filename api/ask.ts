@@ -2,7 +2,7 @@
 // askCore is pure apart from the injected fetch, so the tests and the eval runner can import it.
 import { readFileSync } from "node:fs";
 import { approvedSlice, evidenceIds } from "../lib/profile.mjs";
-import { MAX_STEPS, runLoop, schemasOf } from "../tools/loop.ts";
+import { type LoopResult, MAX_STEPS, runLoop, schemasOf } from "../tools/loop.ts";
 import { checkClaims } from "../tools/check.ts";
 
 type AskInput = { question: unknown; origin?: string | null; ip?: string };
@@ -210,7 +210,7 @@ export async function askCore(input: AskInput, deps: AskDeps): Promise<AskResult
     }
   };
 
-  let loop;
+  let loop: LoopResult;
   try {
     loop = await runLoop({
       messages: [
