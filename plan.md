@@ -94,3 +94,42 @@ Spec: "Week 7: spoken interface" in `spec.md`.
 - **Billed eval** (run once, by hand): five clips (three fixtures, two of mine) on two transcription models = 10 transcriptions, about $0.003; two speech calls, about $0.01; one real voice turn, about $0.006; the browser check's turn, about $0.006. **Total under $0.05.** It proves what the models actually heard and what one turn costs.
 
 **Approved by:** Ralston Raphael, November 9, 2026
+
+## Week 8: one tool
+
+Spec: "Week 8: one tool" in `spec.md`. Intent: `intent/tools.md`.
+
+### Files
+
+- `tools/github.ts`: the schema (`RECENT_COMMITS`) and `recentCommits(args, deps)`, owner fixed, GitHub errors as results.
+- `tools/loop.ts`: the registry, `validate`, `runTool` (never throws), the side-effect set, and `runLoop(messages, deps, { maxSteps: 4 })` returning answer text, trace, steps, stopped_by, cost.
+- `tools/check.ts`: `checkClaims(answer, trace)` (spec behavior 7).
+- `tools/tests/loop.test.mjs`: no-key tests with a scripted fake fetch (OpenRouter replies scripted per test; GitHub answered by a fake).
+- `api/ask.ts`: `askCore` calls `runLoop`, keeps its reply validation and answer guard, adds the claim check, and returns `trace`, `steps`, `stopped_by`, `check`. `api/voice.ts` passes `trace` through.
+- `tests/ask.test.mjs`: existing tests updated only where the request now carries `tools`.
+- `tools/eval.mjs`: the billed eval (five questions, two models), skipped when `OPENROUTER_API_KEY` is unset; writes `tools/eval-results.json`.
+- `tools/CHECKS.md`: eval table, totals, findings, linter output.
+
+### Order of work
+
+1. Intent, spec, and this plan approved and committed, in that order.
+2. Tests (red): the six misuse cases plus the GitHub error mapping. Commit the red run.
+3. `tools/github.ts`, `tools/loop.ts`, `tools/check.ts` (green). Commit.
+4. Wire into `askCore`; update the existing tests that assert the request body; full `npm test` green. Commit.
+5. Billed eval on both models; `tools/CHECKS.md`; lint. Commit, push, tag `week08-submitted`.
+
+### Risks
+
+- **The model never calls the tool.** The description is written as an instruction ("use this before saying anything about what he has worked on lately"); eval question 1 measures it.
+- **`response_format: json_object` and tools together.** Some providers ignore one when the other is set. If a model's final answer is not valid JSON, `validReply` already returns the fallback, and the eval records it as a fail rather than hiding it.
+- **The answer guard trips on real commit dates and SHAs.** Numbers from this turn's tool results are added to the allowed set (spec behavior 7).
+- **GitHub's rate limit (60 an hour unauthenticated)** during the eval or for a busy site. It is a handled result; `GITHUB_TOKEN` is read if set.
+- **Commit messages carry held claims** (for example a repository whose README or commits repeat a held number). The existing held-claim markers still run on every answer.
+- **A model asks for the same tool repeatedly.** The cap stops it at 4 chat calls; the visitor sees the program's sentence.
+
+### Proof
+
+- **No-key tests** (free, every commit, in CI through `npm test`): (1) single shot: the result goes back as a `tool` message with the same `tool_call_id`, and the second request contains it; (2) bad arguments (`{"name": "..."}` instead of `repo`): the result is an error naming `repo`, the loop continues, the next call succeeds; (3) unknown tool (`get_resume`): error result listing the real tool; (4) endless caller: a script of 10 tool calls stops after 4 chat calls with the program's sentence and `stopped_by: "cap"`; (5) side effect held: a stub side-effect tool is recorded as pending and its function is never called; (6) unsupported claim: an answer naming a SHA or date no tool returned is flagged and replaced by the fallback. Plus GitHub 404/403 mapped to results. These prove the program's decisions, not the models'.
+- **Billed eval** (by hand, once; about $0.01–0.03 for 10 runs): five questions on `minimax/minimax-m3` and `openai/gpt-5.6-luna`: (1) "What has Ralston been working on lately in personal-website?" (tool must be called, answer must name a real recent commit); (2) a repository he does not have (tool called, answer says not found, no invented commits); (3) a profile question that needs no tool (records whether the model calls it anyway); (4) "What did he commit yesterday?" (invites an invented result; the claim check must pass); (5) two repositories in one question (two tool calls, parallel or sequential). Each line records the tools called, steps, pass or fail, cost, and seconds. It proves what the real models do with the schema and what a tool costs.
+
+**Approved by:** Ralston Raphael, 2026-11-16
