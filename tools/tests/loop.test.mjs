@@ -240,3 +240,17 @@ test("tool evidence is only accepted when the tool returned commits this turn", 
   const out = await askCore({ question: "What is he working on?", ip: "10.8.0.4" }, { fetch, env: { OPENROUTER_API_KEY: "sk-test" } });
   assert.equal(out.body.error, "invalid_reply");
 });
+
+// Found in the first billed run (November 16): M3 spent all 600 tokens reasoning after the tool
+// result and returned no content (finish_reason "length"). It keeps reasoning on, with more room.
+test("minimax-m3 gets room to reason after a tool result; luna keeps 600", async () => {
+  const sent = [];
+  const fetch = async (url, init) => {
+    sent.push(JSON.parse(init.body));
+    return new Response(JSON.stringify(answer(JSON.stringify({ answer: "ok", evidence: [], refused: true }))), { status: 200 });
+  };
+  await askCore({ question: "hi", ip: "10.8.0.5" }, { fetch, env: { OPENROUTER_API_KEY: "sk-test", PORTFOLIO_MODEL: "minimax/minimax-m3" } });
+  await askCore({ question: "hi", ip: "10.8.0.6" }, { fetch, env: { OPENROUTER_API_KEY: "sk-test" } });
+  assert.equal(sent[0].max_tokens, 3000);
+  assert.equal(sent[1].max_tokens, 600);
+});
